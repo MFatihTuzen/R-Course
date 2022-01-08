@@ -431,3 +431,432 @@ data[!complete.cases(data),]
 
 
 na.omit(data)
+
+# Faktörler ----
+
+data <- c(rep("erkek",5),rep("kadın",7))
+print(data)
+
+is.factor(data)
+
+factor_data <- factor(data)
+is.factor(factor_data)
+
+factor_data
+
+as.numeric(factor_data)
+
+
+boy <- c(132,151,162,139,166,147,122)
+kilo <- c(48,49,66,53,67,52,40)
+cinsiyet <- c("erkek","erkek","kadın","kadın","erkek","kadın","erkek")
+
+df <- data.frame(boy,kilo,cinsiyet)
+str(df)
+
+
+df$cinsiyet <- factor(cinsiyet)
+str(df)
+print(is.factor(df$cinsiyet))
+print(df$cinsiyet)
+
+
+df2 <- c(rep("düşük",4),rep("orta",5),rep("yüksek",2))
+factor_df2 <- factor(df2)
+print(factor_df2)
+
+
+order_df2 <- factor(factor_df2,levels = c("yüksek","orta","düşük"))
+print(order_df2)
+
+
+order_df2 <- factor(factor_df2,levels = c("yüksek","orta","düşük"),ordered = TRUE)
+print(order_df2)
+
+
+faktor <- gl(n=3, k=4, labels = c("level1", "level2","level3"),ordered = TRUE)
+print(faktor)
+
+# Fonksiyonlar ----
+
+f_kare <- function(x) {
+ x^2
+
+}
+
+f_kare(15)
+f_kare(10)
+
+
+set.seed(123) # Pseudo-randomization
+x1 <- rnorm(1000, 0, 1.0)
+x2 <- rnorm(1000, 0, 1.5)
+x3 <- rnorm(1000, 0, 5.0)
+
+sd1 <- sqrt(sum((x1 - mean(x1))^2) / (length(x1) - 1))
+sd2 <- sqrt(sum((x2 - mean(x2))^2) / (length(x2) - 1))
+sd3 <- sqrt(sum((x3 - mean(x1))^2) / (length(x3) - 1))
+c(sd1 = sd1, sd2 = sd2, sd3 = sd3)
+
+
+f_sd <- function(x) {
+  result <- sqrt(sum((x - mean(x))^2) / (length(x) - 1))
+  return(result)
+}
+
+
+sd1 <- f_sd(x1)
+sd2 <- f_sd(x2)
+sd3 <- f_sd(x3)
+c(sd1 = sd1, sd2 = sd2, sd3 = sd3)
+
+f_std <- function(x) {
+  m <- mean(x)
+  s <- sd(x)
+  (x - m) / s
+}
+
+x4 <- rnorm(10,5,10)
+x4
+
+f_std(x4)
+
+
+# Kontrol İfadeleri
+
+x <- 8
+if (x < 10) {
+  print("x 10'dan küçüktür")
+} else {
+  print("x 10'dan büyüktür ya da 10'a eşittir")
+}
+
+
+df <- data.frame(value = 1:9)
+df$group <- ifelse(df$value <= 3,1,ifelse(df$value > 3 & df$value <= 6,2,3))
+df
+
+
+for (i in 1:5) {
+  print(i)
+}
+
+v <- LETTERS[1:4]
+for ( i in v) {
+  print(i)
+}
+
+
+for (i in 1:nrow(df)){
+  df[i,"multiply"] <- df[i,"value"] * df[i,"group"]
+}
+
+
+# i yerine farklı ifade de kullanılabilir
+(x <- data.frame(age=c(28, 35, 13, 13),
+                 height=c(1.62, 1.53, 1.83, 1.71),
+                 weight=c(65, 59, 72, 83)))
+
+for (var in colnames(x)) {
+  m <- mean(x[, var])
+  print(paste("Average", var, "is", m))
+}
+
+x <- 0
+while (x^2 < 20) 
+  {
+  print(x) # Print x
+  x <- x + 1 # x'i bir artır
+}
+
+x <- 0
+repeat {
+  if (x^2 > 20) break # bu koşul sağlandığında döngüyü bitir
+  print(x)
+  x <- x + 1 # x'i bir artır
+}
+
+# next
+for(i in 1:7) {
+  if (i==4) next # i=4 olduğunda atla
+  print(1:i)
+}
+
+
+(s <- seq(1,10,1))
+
+
+for (i in s) {
+  if (i%%2 == 1) { # mod
+    next
+  } else {
+    print(i)
+  }
+}
+
+
+(mat <- matrix(nrow=4, ncol=4))
+
+nr <- nrow(mat)
+nc <- ncol(mat)
+
+# matrisin içini dolduralım
+for(i in 1:nr) {
+  for (j in 1:nc) {
+    mat[i, j] = i * j
+  }
+}
+
+
+# Tarih-ZamaN İşlemleri ---
+
+Sys.Date()
+Sys.time()
+
+myDate <- as.Date("2022-01-04")
+class(myDate)
+
+as.Date("12/31/2021")
+as.Date("12/31/2021", format = "%m/%d/%Y")
+as.Date("1/31/2021", format = "%m/%d/%Y")
+
+
+format(myDate, "%Y")
+as.numeric(format(myDate, "%Y"))
+
+weekdays(myDate)
+months(myDate)
+quarters(myDate)
+
+
+date_week <- seq(from = as.Date("2021-10-1"),
+                 to = as.Date("2021/12/31"),
+                 by = "1 week")
+date_week
+
+date_day <- seq(from = as.Date("2021-12-15"),
+                to = as.Date("2021/12/31"),
+                by = "day")
+date_day
+
+
+date_month <- seq(from = as.Date("2021-1-15"),
+                  to = as.Date("2021/12/31"),
+                  by = "month")
+date_month
+
+
+class(Sys.time())
+
+
+myDateTime <- "2021-12-11 22:10:35"
+myDateTime
+class(myDateTime)
+as.POSIXct(myDateTime)
+class(as.POSIXct(myDateTime))
+Sys.timezone()
+
+
+myDateTime.POSIXlt <- as.POSIXlt(myDateTime)
+myDateTime.POSIXlt$sec
+myDateTime.POSIXlt$min
+
+#lubridate
+
+library(lubridate)
+
+ymd(20211215)
+ymd_hm(202112121533)
+
+mdy("December 13, 2021")
+mdy("12 18, 2021")
+
+dmy(241221)
+dmy(24122021)
+
+today <- Sys.time()
+today
+
+
+year(today)
+month(today)
+day(today)
+hour(today)
+minute(today)
+second(today)
+
+month(today,label = TRUE,abbr = FALSE)
+wday(today, label = TRUE,abbr = FALSE)
+yday(today)
+
+library(zoo)
+
+as.yearmon(today)
+format(as.yearmon(today), "%B %Y")
+format(as.yearmon(today), "%Y-%m")
+as.yearqtr(today)
+
+df <-
+  data.frame(date = c(
+    "2010-02-01",
+    "20110522",
+    "2009/04/30",
+    "2012 11 05",
+    "11-9-2015"
+  ))
+df$date2 <- as.Date(parse_date_time(df$date, c("ymd", "mdy")))
+df
+
+#Metin İşlemleri ----
+
+as.character(3.14)
+class(as.character(3.14))
+
+
+first <- "Fatih"
+last <- "Tüzen"
+paste(first,last)
+paste0(first,last)
+
+
+paste("R","Python","SPSS",sep = "-")
+
+
+x <- c("R programı","program","istatistik","programlama dili","bilgisayar","matematik")
+grep("program",x)
+
+grep("^ist",x)
+grep("tik$",x)
+
+grepl("tik$",x)
+x[grepl("tik$",x)]
+
+
+nchar(x)
+nchar("R Programlama")
+toupper("program")
+tolower(c("SPSS","R","PYTHON"))
+
+substr("123456789",start = 3, stop = 6)
+substring("123456789", first =3, last = 6)
+
+
+x <- "R Programlama"
+substr(x,nchar(x)-3,nchar(x)) # son 4 karakteri getir
+strsplit("Ankara;İstanbul;İzmir",split = ";")
+
+# Apply Ailesi ----
+# apply
+x <-matrix(rnorm(30), nrow=5, ncol=6)
+x
+
+apply(x, 2 ,sum)
+apply(x, 1 ,sum)
+apply(x, 2 ,sd)
+
+mat <- matrix(c(1:12),nrow=4)
+
+apply(mat,2,function(x) x^2)
+
+
+apply(mat,2, quantile,probs=c(0.25,0.5,0.75))
+
+# lapply
+a <-matrix(1:9, 3,3)
+b <-matrix(4:15, 4,3)
+c <-matrix(8:10, 3,2)
+mylist<-list(a,b,c)
+mylist
+
+lapply(mylist,mean)
+lapply(mylist,sum)
+lapply(mylist, function(x) x[,1])
+
+mylist2 <- list(a = 1:4, b = rnorm(10), c = rnorm(20, 1), d = rnorm(100, 5))
+mylist2
+lapply(mylist2, mean)
+
+# sapply
+nrow(cars)
+head(cars)
+
+lapply(cars,sum)
+sapply(cars,sum)
+
+#mapply
+
+l1 <- list(a=c(1:5),b=c(6:10))
+l2 <- list(c=c(11:15),d=c(16:20))
+mapply(sum,l1$a,l1$b,l2$c,l2$d) # gözlemlerin toplamı
+
+mapply(prod,l1$a,l1$b,l2$c,l2$d)
+
+# tapply
+
+df <- data.frame(x =round(runif(15,min=1,max=10)),
+                 group=sample(c(1:3),15,replace = TRUE))
+df
+
+tapply(df$x,df$group, FUN = mean)
+
+tapply(df$x,df$group, FUN = length)
+
+
+# import ----
+
+
+
+# delimiter/separator , ise
+mtcars_csv <- read.csv("datasets/mtcars_csv.csv")
+str(mtcars_csv)
+
+mtcars_csv <- read.csv("datasets/mtcars_csv.csv",
+                       stringsAsFactors = TRUE)
+str(mtcars_csv)
+
+
+mtcars_csv2 <- read.csv2("datasets/mtcars_csv2.csv")
+str(mtcars_csv2)
+
+
+mtcars_csv <- read.table("datasets/mtcars_csv.csv",
+                         sep = ",",
+                         header = TRUE)
+
+mtcars_csv2 <- read.table("datasets/mtcars_csv2.csv",
+                         sep = ";",
+                         header = TRUE)
+
+mtcars_txt <- read.table("datasets/mtcars_txt.txt",
+                         sep = ";",
+                         header = TRUE)
+
+library(readxl)
+mtcars_excel <- read_excel("datasets/mtcars_excel.xlsx",
+                           sheet = "mtcars")
+str(mtcars_excel)
+
+
+mtcars_excel2 <- read_excel("datasets/mtcars_excel.xlsx",
+                            sheet = "mtcars2",
+                            skip = 1)
+
+# export
+write.csv(mtcars_csv,"write_mtcars.csv",
+          row.names = FALSE)
+write.table(mtcars_csv,"write_mtcars.csv",
+            row.names = FALSE,
+            sep = ";")
+
+
+
+openxlsx::write.xlsx(mtcars_csv,"write_mtcars.xlsx")
+
+
+# hazır verisetleri
+data()
+data(package = .packages(all.available = TRUE))
+
+
+saveRDS(mtcars, "datasets/mtcars.rds")
+my_data <- readRDS("datasets/mtcars.rds")
