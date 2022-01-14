@@ -392,6 +392,57 @@ ggplot(diamonds, aes(x=cut,y=price)) +
   stat_summary(fun.y = "mean", geom = "point", shape = 5, size = 3)
 
 
+# ısı haritası
+
+
+economics %>% 
+  mutate(year=lubridate::year((date)),
+         month=lubridate::month(date,label = TRUE,abbr = FALSE)) %>%
+  ggplot()+
+  geom_tile(aes(x=year,y=month,fill=pce))+
+  scale_fill_distiller(palette = "Spectral",
+                       type = "seq")
+
+
+USD <- readxl::read_excel("datasets/USD.xlsx")
+str(USD)
+head(USD)
+
+USD %>% 
+  mutate(date=lubridate::ym(Tarih),
+         year=lubridate::year((date)),
+         month=lubridate::month(date,label = TRUE,abbr = FALSE)) %>% 
+  ggplot()+
+  geom_tile(aes(x=year,y=month,fill=USD))+
+  scale_fill_viridis_c()+
+  scale_x_continuous(expand = c(0,0))+
+  theme(legend.position = "bottom",
+        legend.key.width = unit(1, "cm"),
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "white", colour = "gray"))
+ 
+USD %>% 
+  mutate(date=lubridate::ym(Tarih),
+         year=lubridate::year((date)),
+         month=lubridate::month(date)) %>% 
+  ggplot(aes(x = year, y = month, fill = ..level..)) +
+  stat_density_2d(geom = "polygon") +
+  scale_fill_viridis_c()
+
+library(tidyr)
+cor_data <- data.frame(cor(economics[2:6]))
+
+cor_data %>% 
+  mutate(var1=rownames(cor_data)) %>% 
+  gather(key = "var2",value = "value",-var1) %>% 
+  ggplot(aes(x = var1,y = var2,fill = value))+
+  geom_tile()+
+  #scale_fill_gradient(high = "green", low = "white")+
+  scale_fill_distiller(palette = "Spectral")
+  
+
+# grafiği kaydetme
+
 my_plot <- economics %>%
   mutate(uemploy_mom=unemploy/lag(unemploy ) * 100 - 100,
          growth=ifelse(uemploy_mom>0,"pozitif","negatif")) %>%
