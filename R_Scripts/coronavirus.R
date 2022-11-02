@@ -6,6 +6,7 @@ data(coronavirus)
 head(coronavirus)
 tail(coronavirus)
 nrow(coronavirus)
+ncol(coronavirus)
 summary(coronavirus)
 
 
