@@ -4,7 +4,7 @@ devtools::install_github("RamiKrispin/coronavirus")
 library(coronavirus)
 data(coronavirus)
 head(coronavirus)
-
+tail(coronavirus)
 nrow(coronavirus)
 summary(coronavirus)
 
