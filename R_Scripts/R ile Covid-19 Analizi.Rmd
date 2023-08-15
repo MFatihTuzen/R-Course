@@ -1,0 +1,330 @@
+---
+title: \vspace{2cm} \begin{Huge} \textbf {R ile Covid19 Analizi} \end{Huge} \vspace{0.5cm}
+author: \Large Muhammed Fatih TÜZEN
+date: "15 01 2022"
+header-includes:
+ - \usepackage{fancyhdr}
+ - \pagestyle{fancy}
+ - \fancyhead[LO,LE]{Muhammed Fatih TÜZEN}
+ - \usepackage{titling}
+ - \pretitle{\begin{center}
+  \includegraphics[width=4.5in,height=5.5in]{D:/R_Course/R/images/covid.jpg}\Huge\\}
+ - \posttitle{\end{center}}
+output: 
+ pdf_document : 
+   toc_depth: 2
+   number_sections: yes
+   latex_engine: xelatex
+   highlight: tango
+toc-title: "İÇİNDEKİLER"
+fontsize: 12pt
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+options(scipen=999)
+```
+
+\centering
+
+\raggedright
+
+\newpage
+
+\renewcommand{\contentsname}{İÇİNDEKİLER}
+
+\tableofcontents
+
+\newpage
+
+# Giriş
+
+Veri analizi kapsamında uygulama yapmak için son yılların gündemini oldukça meşgul eden COVID-19 verileri kullanılacaktır. Bu kapsamda hazırlanmış olan **`coronavirus`** paketi kullanılarak güncel vaka sayıları ve aşılama verilerine erişmek mümkündür.
+
+Bu paket, 2019 Novel Coronavirus COVID-19 (2019-nCoV) salgını ve ülkelere göre aşılama çabalarına ilişkin düzenli bir format veri kümesi sağlar. Ham veriler, Johns Hopkins Üniversitesi Sistem Bilimi ve Mühendisliği Merkezi (JHU CCSE) Coronavirüs deposundan alınmaktadır. Pakete ilişkin detaylara <https://github.com/RamiKrispin/coronavirus> adresinden ulaşılabilir.
+
+Paketi github sayfasından yükleyebilirsiniz:
+
+    devtools::install_github("RamiKrispin/coronavirus")
+
+# Veri ile Tanışma
+
+```{r}
+
+# coronavirus verisi
+library(coronavirus)
+data(coronavirus)
+
+head(coronavirus)
+nrow(coronavirus)
+str(coronavirus)
+summary(coronavirus)
+
+library(dplyr)
+glimpse(coronavirus)
+
+```
+
+# Veri Analizi
+
+## Zamana göre vaka sayıları
+
+```{r}
+
+# Zamana göre vaka sayıları
+
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  group_by(date) %>%
+  summarise(cases = sum(cases)) %>% 
+  arrange(desc(date))
+
+library(ggplot2)
+coronavirus %>%
+  filter(type != "recovery") %>%
+  group_by(date,type) %>%
+  summarise(cases = sum(cases)) %>% 
+  ggplot(aes(x=date,y=cases)) +
+  geom_col(col="blue") +
+  facet_wrap(~type,scales = "free",nrow = 2)
+
+
+coronavirus %>%
+  filter(type != "recovery") %>%
+  group_by(date,type) %>%
+  summarise(cases = sum(cases)) %>% 
+  ggplot(aes(x=date,y=cases)) +
+  geom_line(col="blue") +
+  facet_wrap(~type,scales = "free",nrow = 2)+
+  scale_x_date(date_breaks = "3 month", date_labels = "%Y-%m")
+
+coronavirus %>%
+  filter(type != "recovery") %>%
+  group_by(date,type) %>%
+  summarise(cases = sum(cases)) %>% 
+  ggplot(aes(x=date,y=cases)) +
+  geom_line(col="blue") +
+  scale_y_log10() +
+  facet_wrap(~type,scales = "free",nrow = 2) +
+  scale_x_date(date_breaks = "3 month", date_labels = "%Y-%m")
+
+```
+
+## Vaka tipine göre vaka sayıları
+
+```{r}
+
+# Vaka tipine göre vaka sayıları
+coronavirus %>%
+  filter(type != "recovery") %>%
+  group_by(type) %>%
+  summarise(cases = sum(cases))
+
+coronavirus %>%
+  filter(type != "recovery") %>%
+  group_by(type) %>%
+  summarise(cases = sum(cases)) %>% 
+  ggplot(aes(x=type,y=cases,fill=type)) +
+  geom_col()+
+  theme(legend.position = "none") +
+  scale_y_continuous(breaks = seq(0,3e+8,by=4e+7),labels = function(x) format(x, scientific = FALSE))+
+  geom_text(aes(label = cases), hjust=0.5,vjust=-1)
+
+```
+
+## Kıtalara göre ölüm ve vaka sayıları
+
+```{r}
+
+
+# kıtalara göre ölüm ve vaka sayıları
+library(tidyr)
+coronavirus %>%
+  filter(type != "recovery") %>%
+  group_by(type, continent_name) %>%
+  summarise(cases = sum(cases)) %>%
+  spread(key = type, value = cases) %>%
+  mutate(death_rate = death / confirmed) %>%
+  filter(!is.na(continent_name)) %>%
+  arrange(-death_rate)
+
+coronavirus %>%
+  filter(type != "recovery") %>%
+  group_by(type, continent_name) %>%
+  summarise(cases = sum(cases)) %>%
+  filter(!is.na(continent_name)) %>% 
+  ggplot(aes(x=reorder(continent_name,cases),y=cases,fill=type)) +
+  geom_col()+
+  theme(legend.position = "bottom") +
+  labs(x="") +
+  coord_flip()
+
+```
+
+## Ülkelere göre onaylanmış vaka sayıları
+
+```{r}
+
+# Ülkelere göre onaylanmış vaka sayıları
+coronavirus %>% 
+  filter(type == "confirmed") %>%
+  group_by(country) %>%
+  summarise(total_cases = sum(cases)) %>%
+  arrange(-total_cases)
+
+coronavirus %>% 
+  filter(type == "confirmed") %>%
+  group_by(country) %>%
+  summarise(total_cases = sum(cases)) %>%
+  arrange(-total_cases) %>% 
+  head(15) %>% 
+  ggplot(aes(x=reorder(country,total_cases),y=total_cases)) +
+  geom_col(fill="blue",alpha=0.5)+
+  theme(legend.position = "bottom") +
+  labs(x="") +
+  scale_y_continuous(breaks = seq(0,6e+7,by=1e+7),labels = function(x) format(x, scientific = FALSE))+
+  coord_flip()+ 
+  geom_text(aes(label = total_cases),hjust=-0.1,vjust=0.5)+
+  theme_minimal()
+
+```
+
+## Ülkelere göre ölüm sayıları
+
+```{r}
+
+# Ülkelere göre ölüm sayıları
+coronavirus %>% 
+  filter(type == "death") %>%
+  group_by(country) %>%
+  summarise(total_cases = sum(cases)) %>%
+  arrange(-total_cases)
+
+coronavirus %>%
+  filter(type == "death") %>%
+  group_by(country) %>%
+  summarise(total_deaths = sum(cases)) %>%
+  arrange(-total_deaths) %>%
+  head(15) %>%
+  ggplot(aes(x = reorder(country, -total_deaths), y = total_deaths)) +
+  geom_col(fill = "blue", alpha = 0.5) +
+  scale_y_continuous(labels = scales::comma) +
+  theme(legend.position = "bottom") +
+  labs( title = "Ülkelere Göre Covid-19 Ölüm Sayıları (İlk 15)",
+        x="",
+        y="Ölüm Sayıları") +
+  theme_minimal()
+
+```
+
+## Son 24 saatteki vaka ve ölüm sayıları
+
+```{r}
+
+# son 24 saatteki vaka ve ölüm sayıları
+coronavirus %>% 
+  filter(cases!=0,type != "recovery") %>%
+  select(date,country, type, cases) %>%
+  group_by(country, type) %>%
+  filter(date==max(date)) %>%
+  summarise(total_cases=sum(cases)) %>% 
+  spread(key = type,value = total_cases) %>%
+  arrange(-confirmed) %>% 
+  head(20)
+
+coronavirus %>% 
+  filter(cases!=0,type != "recovery") %>%
+  select(date,country, type, cases) %>%
+  group_by(country, type) %>%
+  filter(date==max(date)) %>%
+  summarise(total_cases=sum(cases)) %>% 
+  spread(key = type,value = total_cases) %>% 
+  ggplot(aes(x=confirmed,y=death))+
+  geom_point() +
+  scale_x_log10()+
+  scale_y_log10() +
+  geom_smooth()
+
+
+
+
+```
+
+## Türkiye'de Covid-19
+
+```{r}
+
+# Türkiye'de Covid-19
+
+coronavirus %>%
+  filter(type != "recovery",country=="Turkey",cases!=0) %>% 
+  select(date,type,cases) %>% 
+  summary()
+
+# Türkiye'de 823225 vaka olmadı. Veri girişi hatası olabilir.
+# bunu kaldırabiliriz.
+
+# vaka sayısına göre sıralayalım
+coronavirus %>%
+  filter(type != "recovery",country=="Turkey",cases!=0) %>% 
+  select(date,type,cases) %>% 
+  arrange(-cases) %>% 
+  head(20)
+
+# boxplot çizdirelim
+coronavirus %>%
+  filter(type != "recovery",country=="Turkey",cases!=0) %>% 
+  select(date,type,cases) %>% 
+  ggplot(aes(y=cases)) +
+  geom_boxplot(outlier.colour = "red", outlier.shape = 1)
+
+is_outlier <- function(x) {
+  return(x < quantile(x, 0.0025) | x > quantile(x, 0.9975))
+}
+
+coronavirus %>%
+  filter(type != "recovery",country=="Turkey",cases!=0) %>% 
+  select(date,type,cases) %>% 
+  group_by(type) %>% 
+  mutate(outlier=ifelse(is_outlier(cases), TRUE, FALSE)) %>% 
+  ungroup() %>% 
+  arrange(-cases) %>% 
+  head(10)
+
+coronavirus %>%
+  filter(type != "recovery",country=="Turkey",between(cases,1,100000)) %>%
+  ggplot(aes(x=date,y=cases)) +
+  geom_line(col="blue") +
+  facet_wrap(~type,scales = "free",nrow = 2) +
+  scale_x_date(date_breaks = "3 month", date_labels = "%Y-%m") +
+  theme_minimal()
+
+
+coronavirus %>%
+  filter(type != "recovery",country=="Turkey",between(cases,1,100000)) %>%
+  ggplot(aes(x=date,y=cases)) +
+  geom_line(col="blue") +
+  scale_y_log10() +
+  facet_wrap(~type,scales = "free",nrow = 2) +
+  scale_x_date(date_breaks = "3 month", date_labels = "%Y-%m") +
+  theme_minimal()
+
+# büyüme hesaplayalım
+coronavirus %>%
+  filter(type == "confirmed",country=="Turkey",between(cases,1,100000)) %>%
+  select(date,cases) %>% 
+  mutate(growth=cases/lag(cases,1)*100-100) %>% 
+  arrange(desc(date)) %>% 
+  head(10)
+
+coronavirus %>%
+  filter(type == "confirmed",country=="Turkey",between(cases,1,100000)) %>%
+  select(date,cases) %>% 
+  mutate(growth=cases/lag(cases,1)*100-100) %>% 
+  filter(lubridate::year(date)>2020) %>% 
+  ggplot(aes(x=date,y=growth)) +
+  geom_line(size=1,color="blue")
+
+```

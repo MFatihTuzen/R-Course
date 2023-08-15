@@ -1,0 +1,775 @@
+---
+title: \vspace{2cm} \begin{Huge} \textbf {R ile Temel İstatistik} \end{Huge} \vspace{0.5cm}
+author: \Large Muhammed Fatih TÜZEN
+date: "11 01 2022"
+header-includes:
+ - \usepackage{fancyhdr}
+ - \pagestyle{fancy}
+ - \fancyhead[LO,LE]{Muhammed Fatih TÜZEN}
+ - \usepackage{titling}
+ - \pretitle{\begin{center}
+  \includegraphics[width=4.5in,height=5.5in]{D:/R_Course/R/images/statistics.jpg}\Huge\\}
+ - \posttitle{\end{center}}
+output: 
+ pdf_document : 
+   toc_depth: 2
+   number_sections: yes
+   latex_engine: xelatex
+   highlight: tango
+toc-title: "İÇİNDEKİLER"
+fontsize: 12pt
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+options(scipen=999)
+```
+
+\centering
+
+\raggedright
+
+\newpage
+
+\renewcommand{\contentsname}{İÇİNDEKİLER}
+
+\tableofcontents
+
+\newpage
+
+# Giriş
+
+İstatistik; amacın belirlenmesi, çalışmanın planlanması, verilerin toplanması, değerlendirilmesi ve karara varılması sürecini içeren bir bilim dalıdır. İstatistik bilimi içinde örneklemden elde edilen bilgileri kitlelere genelleme, tahminler yapma, değişkenler arasındaki ilişkileri ortaya çıkarma gibi konular yer almaktadır.
+
+Uygulamalı istatistikler iki alana ayrılabilir: tanımlayıcı istatistikler ve çıkarımsal istatistikler. Tanımlayıcı istatistikler, tabloları, grafikleri ve özet ölçüleri kullanarak verileri düzenleme, görüntüleme ve tanımlama yöntemlerinden oluşur. Buna karşılık çıkarımsal istatistikler, bir popülasyon hakkında kararlar veya tahminler yapmak için örnek sonuçlarını kullanan yöntemlerden oluşur.
+
+Tanımlayıcı istatistik, bir dizi değeri veya bir veri kümesini özetlemeyi, tanımlamayı ve sunmayı amaçlayan bir istatistik dalıdır. Tanımlayıcı istatistikler genellikle herhangi bir istatistiksel analizin ilk adımı ve önemli bir parçasıdır. Verilerin kalitesini kontrol etmeyi sağlar ve net bir genel bakışa sahip olarak verileri anlamaya yardımcı olur. Tanımlayıcı istatistikler, merkezi eğilim ölçüleri ve dağılım ölçüleri olmak üzere ikiye ayrılır.
+
+# Merkezi Eğilim Ölçüleri
+
+Dağılımın konumu hakkında bilgi veren ölçümlerdir. Aritmetik ortalama, geometrik ortalama, harmonik ortalama, düzeltilmiş ortalama, ortanca, çeyrekler, yüzdelikler konum ölçülerine örnek olarak verilebilir.
+
+## Aritmetik Ortalama
+
+-   Günlük hayatta en sık kullanılan merkezi eğilim ölçüsüdür.
+
+-   Üzerinde inceleme yapılan veri setindeki elemanların toplanıp incelenen eleman sayısına bölünmesiyle elde edilir.
+
+-   Konum olarak verilerin en çok hangi değer etrafında toplandığının ya da yoğunlaştığının sayısal bir ölçüsüdür.
+
+-   Hem kitle hem de örneklem için hesaplanır.
+
+-   Dağılışların yerinin belirlenmesinde en çok kullanılan yer ölçüsü aritmetik ortalamadır; ve tek başına ortalama sözcüğünden aritmetik ortalama anlaşılır.
+
+-   Aritmetik ortalama bütün değerlerin ağırlığını eşit kabul ettiğinden dağılımı her zaman en iyi şekilde temsil etmeyebilir. Ayrıca aritmetik ortalama, veri kümesindeki aşırı değerlerden çok kolay etkilenir.
+
+$$ \mu = \frac{1}{N}\sum_{i=1}^NX_i $$
+
+```{r}
+
+mean(airquality$Wind)
+mean(airquality$Ozone, na.rm = TRUE) # NA'ler kaldırılarak ortalama hesaplanır
+
+```
+
+## Geometrik Ortalama
+
+-   Periyodik artışlar veya azalmalar (değişim oranları) içeren enflasyon veya nüfus değişiklikleri gibi konuları incelerken, geometrik ortalama, incelenen tüm dönem boyunca ortalama değişikliği bulmak için daha uygundur.
+
+-   Eğer veriler sıfır ya da negatif değerler içeriyorsa geometrik ortalama hesaplanamaz.
+
+-   Geometrik ortalama, uç değerlerden aritmetik ortalamaya göre daha az etkilenmektedir.
+
+-   Geometrik Ortalama \<= Aritmetik Ortalama
+
+$$
+G.O. = ^n\sqrt{\prod_{i=1}^{n}X_i}
+$$
+
+```{r}
+
+# R programında hazır geometrik ortalama fonksiyonu yoktur.
+# 1. yol
+geo_mean <- function(x){
+  x <- na.omit(x)
+  (prod(x))^(1/length(x))
+}
+
+round(geo_mean(airquality$Wind),3)
+round(geo_mean(airquality$Ozone),3)
+
+# 2. yol
+library(psych)
+round(geometric.mean(airquality$Wind),3)
+round(geometric.mean(airquality$Ozone),3)
+```
+
+## Medyan (Ortanca)
+
+-   Gözlem değerleri küçükten büyüğe sıralandığında ortada kalan gözlem değeridir.
+
+-   Bir seride yer alan gözlemlerin tümünün hesaba katılmadığı ortalamalardan biridir.
+
+-   Basit serilerde seri tek sayıda gözlemden oluşuyorsa serinin gözlem değerleri küçükten büyüğe sıralandığında tam ortada yer alan gözlem değeridir.
+
+-   Seri çift sayıda gözlemden oluşuyorsa ortada kalan iki gözlem değerinin aritmetik ortalaması medyandır.
+
+-   Medyan, ölçümlerin %50'sinin üzerinde, %50'sinin aşağısında yer aldığı merkezi değerdir.
+
+-   Dağılımdaki aşırı değerlerden etkilenmez.
+
+-   Aritmetik ortalamaya kıyasla daha tutarlı bir sonuç elde edilir.
+
+-   Her bir veri seti için bir tek medyan söz konusudur.
+
+-   Medyanın zayıf tarafı serideki bütün değerleri dikkate almaması sebebi ile matematik işlemlere elverişli değildir.
+
+-   Gözlem sayısı (n) tek ise , $\widetilde{X} = X_{\frac{n+1}{2}}$
+
+-   Gözlem sayısı (n) çift ise , $\widetilde{X} = \frac{X_\frac{n}{2}+X_{\frac{n+1}{2}}}{2}$
+
+```{r}
+
+median(airquality$Wind)
+median(airquality$Ozone,na.rm = TRUE)
+
+```
+
+## Mod (Tepe değeri)
+
+-   En sık ortaya çıkan (en yüksek frekanslı) ölçümdür.
+
+-   Dağılımdaki aşırı değerlerden etkilenmez
+
+-   Her dağılımda tepe değeri bulunmayabilir.
+
+-   Bazı dağılımlarda birden fazla tepe değeri bulunabilir.
+
+-   Tepe değeri aritmetik işlemler için elverişli değildir.
+
+-   Tüm veri değerlerini göz önünde bulundurmadığı için tutarlı olmayan bir merkezi eğilim ölçüsüdür.
+
+-   Gözlem sayısı az olduğunda tepe değer güvenilir bir ölçü değildir.
+
+![](images/mode.png)
+
+```{r}
+
+# R programında hazır mod fonksiyonu yoktur.
+
+library(DescTools)
+Mode(airquality$Wind)
+Mode(airquality$Solar.R,na.rm = TRUE)
+```
+
+## Çeyreklikler
+
+-   Birinci Bölen ilk yüzde 25 nci noktadır ve verinin ¼ kadarı birinci bölen içerisinde kalır.
+
+-   İkinci Bölen ilk yüzde 50 nci noktadır ve verinin yarısı bu noktanın altında kalır( ½) aynı zamanda ikinci bölen medyan olarak ta bilinir.
+
+-   Üçüncü Bölen ilk yüzde 75 nci veri kümesidir ve bütün verinin ¾ kadarı bu noktanın altında kalır.
+
+-   Gözlem sayısı (n) tek ise , $Q_1 = X_{\frac{n+1}{4}}$
+
+-   Gözlem sayısı (n) çift ise , $Q_1 = \frac{X_\frac{n}{4}+X_{\frac{n}{4}+1}}{2}$
+
+-   Gözlem sayısı (n) tek ise , $Q_3 = X_{\frac{3(n+1)}{4}}$
+
+-   Gözlem sayısı (n) çift ise , $Q_3 = \frac{X_\frac{3n}{4}+X_{\frac{3n}{4}+1}}{2}$
+
+![](images/quartile.png)
+
+```{r}
+
+quantile(airquality$Wind,na.rm = TRUE)
+median(airquality$Wind,na.rm = TRUE)
+quantile(airquality$Wind,na.rm = TRUE,probs = 0.75) #Q3
+quantile(airquality$Wind,na.rm = TRUE,probs = 0.25) #Q1
+quantile(airquality$Wind,na.rm = TRUE,probs = c(0.20,0.50,0.80)) # %20,%50,%80
+
+quantile(airquality$Solar.R,na.rm = TRUE)
+median(airquality$Solar.R,na.rm = TRUE)
+```
+
+# Dağılım Ölçüleri
+
+Ortalama, medyan ve mod gibi merkezi eğilim ölçüleri, bir veri setinin dağılımının bütün resmini ortaya koymaz. Aynı ortalamaya sahip iki veri seti tamamen farklı yayılımlara sahip olabilir. Bir veri seti için gözlem değerleri arasındaki farklılık, diğer veri seti için olduğundan çok daha büyük veya daha küçük olabilir. Bu nedenle, ortalama, medyan veya mod tek başına genellikle bir veri kümesinin dağılımının şeklini ortaya çıkarmak için yeterli bir ölçü değildir. Bu yüzden veri değerleri arasındaki varyasyon hakkında bazı bilgiler sağlayabilecek bir ölçülere de ihtiyaç vardır. Bu ölçülere dağılım (yayılım) ölçüleri denir. Birlikte ele alınan merkezi eğilim ve dağılım ölçüleri, tek başına merkezi eğilim ölçülerinden ziyade bir veri setinin daha iyi bir resmini verir. Değişim aralığı, çeyrekler arası genişlik, varyans, standart sapma, basıklık, çarpıklık, min, max başlıca dağılım ölçüleri arasındadır.
+
+## Değişim Aralığı (Açıklık)
+
+-   Veri setindeki en büyük değer ile en küçük değer arasındaki farktır.
+
+-   En basit dağılım ölçüsü olmakla birlikte uç ve aykırı değerlerden etkilenmesi olumsuz yönüdür.
+
+-   Serinin sadece 2 gözlemine bağlı olarak hesaplanan bu ölçü değişkenliğin şekli hakkında çok fazla bilgi vermediğinden diğer değişkenlik ölçüleri kadar sık kullanılmaz.
+
+$$D.A = max(X)-min(X)$$
+
+```{r}
+
+# 1. yol
+max(airquality$Ozone,na.rm = TRUE)-min(airquality$Ozone,na.rm = TRUE)
+
+# 2. yol
+range(airquality$Ozone,na.rm = TRUE)
+range(airquality$Ozone,na.rm = TRUE)[2]-range(airquality$Ozone,na.rm = TRUE)[1]
+
+```
+
+## Çeyrekler Arası Genişlik
+
+-   Dağılımdaki verilerin ortadaki % 50'sinin yer aldığı aralığı belirlemek için kullanılır.
+
+-   Aşırı uç değerlerden etkilenmez. Çünkü çeyreklikler arası genişlik dağılımdaki değerlerin merkezdeki %50'si ile ilgilenir.
+
+-   Çeyrekler arası bir genişlik, değerlerin büyük kısmının nerede olduğunu gösteren bir ölçüdür.
+
+-   Çeyrek Sapma 3. çeyrek ile 1. çeyrek arasındaki farktır.
+
+-   IQR (Interquartile Range) olarak ifade edilir.
+
+$$IQR=Q_3-Q1$$
+
+```{r}
+
+# 1.yol
+q3 <- quantile(airquality$Wind,na.rm = TRUE,probs = 0.75) #Q3
+q1 <- quantile(airquality$Wind,na.rm = TRUE,probs = 0.25) #Q1
+q3-q1
+
+# 2. yol
+IQR(airquality$Wind,na.rm = TRUE)
+```
+
+## Varyans ve Standart Sapma
+
+Gözlem değerlerinin aritmetik ortalamadan sapmaları dikkate alınarak farklı değişkenlik ölçüleri geliştirilebilir. Ancak gözlemlerin aritmetik ortalamadan sapmalarının her zaman sıfıra eşittir. Bu sorunu ortadan kaldırmak için gözlemlerin aritmetik ortalamadan olan sapmalarının karelerinin toplamının gözlem sayısına oranı değişkenlik ölçüsü olarak yorumlanabilir. Bu ölçü varyans olarak adlandırılır.
+
+-   Bir dağılımda değerler aritmetik ortalamadan uzaklaştıkça dağılımın yaygınlığı artar.
+
+-   Varyansın karekökü standart sapmadır. Genel olarak, bir veri kümesi için standart sapmanın daha düşük bir değeri, o veri kümesinin değerlerinin ortalama etrafında nispeten daha küçük bir aralığa yayıldığını gösterir. Buna karşılık, bir veri kümesi için standart sapmanın daha büyük bir değeri, o veri kümesinin değerlerinin, ortalama etrafında nispeten daha geniş bir aralığa yayıldığını gösterir.
+
+-   Kitle varyansı $\sigma^2$ ile standart sapma ise $\sigma$ ile gösterilmektedir. Örneklem standart sapması ise $s$ ile ifade edilir.
+
+$$s= \sqrt{\sum_{i=1}^N\frac{(x_i-\bar{x})^2}{n-1}}$$
+
+```{r}
+
+var(airquality$Wind,na.rm=TRUE)
+sd(airquality$Wind,na.rm=TRUE)
+
+var(airquality$Solar.R,na.rm=TRUE)
+sd(airquality$Solar.R,na.rm=TRUE)
+
+```
+
+## Değişim Katsayısı
+
+-   Farklı serilerin değişkenliklerinin karşılaştırılmasında, farklı birimlerle ölçülmüş veri setleri söz konusu olduğundan standart sapma kullanışlı değildir.
+
+-   Bunun yerine ilgili serilerin standart sapmaları serilerin ortalama değerinin yüzdesi olarak ifade edilir ve gözlem değerlerinin büyüklüklerinden kaynaklanan farklılık ortadan kalkmış olur.
+
+-   Elde edilen bu yeni değişkenlik ölçüsü kullanılarak serilerin birbirlerine göre daha değişken ya da daha homojen oldukları konusunda yorum yapılabilir.
+
+-   Bu değer ne kadar küçükse dağılım o kadar homojendir, değişkenlik azdır. Yüzdesel olarak ifade edilir.
+
+-   Değişim Katsayısı standart sapmanın aritmetik ortalamaya bölünüp 100 ile çarpılmasıyla elde edilir.
+
+$$D.K. = \frac{S}{\bar{X}}\times{100}$$
+
+```{r}
+
+dk_wind <- sd(airquality$Wind,na.rm=TRUE)/mean(airquality$Wind,na.rm=TRUE)
+dk_wind
+
+dk_solar <- sd(airquality$Solar.R,na.rm=TRUE)/mean(airquality$Solar.R,na.rm=TRUE)
+dk_solar
+```
+
+## Çarpıklık ve Basıklık
+
+-   Bir dağılımın normal dağılıma göre çarpık olup olmadığını belirlemede kullanılır. Simetrik dağılımlarda ortalama, ortanca ve tepe değeri birbirine eşittir.
+
+-   Çarpıklık katsayısı 0 ise dağılım simetriktir, 0'dan küçük ise sola çarpıktır (negatif çarpıklık), 0'dan büyük ise sağa çarpıktır (pozitif çarpıklık).
+
+-   Pozitif çarpıklıkta sağ kuyruk daha uzun iken negatif çarpıklıkta sol kuyruk daha uzundur.
+
+-   Aritmetik Ortalama, Medyan ve Mod arasındaki ilişkilere göre de çarpıklık belirlenebilir.
+
+    -   Mod \< Medyan \< Ortalama ise, dağılım sağa-çarpık yani (+) yöne eğilimli dağılımdır.
+
+    -   Ortalama \< Medyan \< Mod ise, dağılım sola-çarpık yani (-) yöne eğilimli dağılımdır.
+
+    -   Ortalama = Mod = Medyan ise, dağılım simetrik dağılımdır.
+
+![](images/mean_median_mode.png){width="642"}
+
+-   Bir dağılımın normal dağılıma göre basık olup olmadığını belirlemede kullanılır.
+
+-   Basıklık katsayısı sıfırdan büyükse normal dağılıma göre daha sivri, küçük ise daha basıktır.
+
+-   Basıklık katsayısı 3'e eşit ise seri normal dağılıma (mesokurtic) sahiptir. Eğer3'ten küçük ise, bir platykurtik dağılımı gösterir (daha kısa kuyruklu normal dağılımdan daha düz). Eğer 3'ten büyük ise, bir leptokurtik dağılımı gösterir (daha uzun kuyruklu normal dağılımdan daha doruğa).
+
+-   İki veya daha fazla simetrik dağılım karşılaştırıldığında aralarındaki fark basıklık ile incelenir.
+
+![](images/kurtosis.png)
+
+```{r}
+
+library(moments)
+skewness(airquality$Ozone,na.rm = TRUE) # sağa çarpık
+kurtosis(airquality$Ozone,na.rm = TRUE) # sivri
+hist(airquality$Ozone,freq = FALSE)
+lines(density(airquality$Ozone,na.rm = TRUE),col = 2, lwd = 2)
+
+skewness(airquality$Solar.R,na.rm = TRUE) # sola çarpık
+kurtosis(airquality$Solar.R,na.rm = TRUE) # sivri
+hist(airquality$Solar.R,freq = FALSE)
+lines(density(airquality$Solar.R,na.rm = TRUE),col = 2, lwd = 2)
+
+# normal dağılımdan veri üretelim
+norm_vec <- rnorm(1000,10,5)
+skewness(norm_vec) # sola çarpık
+kurtosis(norm_vec) # sivri
+hist(norm_vec,freq = FALSE,col="#116AF3") # renk kodları da kullanılabilir.
+lines(density(norm_vec),col = "#F33011", lwd = 2)
+```
+
+# Aykırı ve Uç Değerler
+
+**Uç Değer;** bireysel farklılıklardan dolayı ortaya çıkan, diğer bireylerden farklılık gösteren değerlerdir. **Aykırı Değer** ise ölçüm ya da kayıt hataları, farklı bir popülasyondan gelen bir gözlemin veya olağandışı aşırı bir gözlemin sonucu gibi nedenlerden dolayı ortaya çıkabilir. Uç ve aykırı değerler diğer değerlerden çok büyük olabileceği gibi çok küçük de olabilir.
+
+Bir aykırı değer gözlemlersek, nedenini belirlemeye çalışmak önemlidir. Bir aykırı değer, bir ölçüm veya kayıt hatasından kaynaklanıyorsa veya başka bir nedenle açıkça veri kümesine ait değilse, aykırı değer basitçe kaldırılabilir. Bununla birlikte, bir aykırı değer için herhangi bir açıklama mevcut değilse, onu veri setinde tutup tutmama kararını vermek zordur.
+
+Aykırı değerler olabilecek gözlemleri tespit etmek için bir teşhis aracı olarak çeyreklikleri ve IQR'yi kullanabiliriz. Bu nedenle, bir veri setinin alt limitini ve üst limitini tanımlarız. Alt sınır, ilk çeyreğin 1.5×IQR altında kalan sayıdır; üst sınır, üçüncü çeyreğin 1,5×IQR üzerinde kalan sayıdır. Alt sınırın altında veya üst sınırın üzerinde olan gözlemler potansiyel aykırı değerlerdir.
+
+$$Alt Sınır = Q_1-1.5\times{IQR} $$
+
+$$ Üst Sınır = Q_3+1.5\times{IQR} $$ Ayrıca aykırı değerlerin tespi için görsel bir araç olarak boxplot grafikleri de kullanılabilir. Kutu ve bıyık diyagramı olarak da adlandırılan bir boxplot grafiği, beş sayılı özete dayanır ve bir veri kümesinin merkezinin ve varyasyonunun grafiksel bir görüntüsünü sağlamak için kullanılabilir.
+
+Boxplot, beş ölçü kullanarak verilerin grafiksel bir sunumunu verir: en küçük değer (min), birinci çeyreklik ($Q_1$) , medyan, üçüncü çeyreklik ($Q_3$) en büyük değer. Kutunun farklı bölümleri arasındaki boşluk, verilerdeki dağılım (yayılma) ve çarpıklık derecesini gösterir.
+
+![](images/boxplot.png)
+
+```{r,fig.height = 5, fig.width = 6}
+
+summary(airquality$Ozone)
+fivenum(airquality$Ozone)
+
+out <- boxplot.stats(airquality$Ozone)$out
+out
+out_ind <- which(airquality$Ozone %in% c(out)) # outlier indeksleri
+out_ind
+
+# outlier olarak görülen satırlar
+airquality[out_ind, ]
+
+# el ile hesaplama
+q1 <- quantile(airquality$Ozone, 0.25,na.rm = TRUE)
+q1
+q3 <- quantile(airquality$Ozone, 0.75,na.rm = TRUE)
+q3
+altsinir <- q1 - 1.5 * IQR(airquality$Ozone,na.rm = TRUE)
+altsinir
+ustsinir <- q3 + 1.5 * IQR(airquality$Ozone,na.rm = TRUE)
+ustsinir
+
+# Bu yönteme göre, -49.875'in altındaki ve 131.125'in üzerindeki tüm gözlemler,
+# potansiyel aykırı değerler olarak kabul edilecektir.
+
+outlier_sira <- which(airquality$Ozone < altsinir | airquality$Ozone > ustsinir)
+outlier_sira
+airquality[outlier_sira,]
+
+# boxplot
+
+par(mfrow=c(1,2))
+boxplot(airquality$Ozone, 
+        col = 'blue', 
+        xlab = 'Ozone', 
+        main = 'Airquality-Ozone')
+
+boxplot(airquality$Solar.R, 
+        col = 'blue', 
+        xlab = 'Solar', 
+        main = 'Airquality-Solar')
+
+
+```
+
+# İlişki Ölçüleri
+
+Önceki bölümlerde, bir dağılımı tanımlayan ve özet istatistikleri hesaplayan tek bir değişkene odaklanmıştık. Tek bir değişkeni tanımlayan istatistiklere tek değişkenli istatistikler denir. İki değişken arasındaki ilişkiyi incelersek, iki değişkenli istatistiklere atıfta bulunuruz. Birkaç değişken arasındaki ilişkiler aynı anda incelenirse, çok değişkenli istatistiklere atıfta bulunuruz. İlişki ölçüleri, iki değişken arasındaki ilişkinin boyutunu özetlemek için araçlar sağlar.
+
+İlişkiyi ölçmek için birçok araç türü olmasına rağmen, kovaryans ve Pearson korelasyon katsayıları "sayısal" veri türü için en bilinen ve yaygın araçlardır. Kovaryans ve korelasyon arasındaki temel fark, kovaryans, değerin işaretine (+'ve veya -'ve) bağlı olarak ilişkinin yönünü gösterir. Ancak korelasyon, değişkenler arasındaki "**doğrusal**" ilişkinin gücünü gösterir.
+
+Kategorik veriler için ki-kare testi kullanılmkatadır. Spearman rho ve Kendall Tau korelasyon katsayıları da vardır ancak bunlar parametrik olmayan testlerdir ve yaygın olarak kullanılmazlar.
+
+Değişkenler arasındaki ilişkiyi çizgi veya saçılım grafiği çizerek de incelenebilir. Ancak, bu grafiklere bakarak ilişkiden emin olmak her zaman mümkün olmayabilir. İstatistikte testler her zaman görsel araçlardan daha güçlüdür. Görsel araçlar fikir verir, testler ise fikirleri doğrular.
+
+## Kovaryans
+
+Kovaryans, iki değişkenin ortak değişkenliğinin bir ölçüsüdür. Kovaryans (−∞,∞) aralığında herhangi bir değer alabilir. Bir değişkenin büyük/küçük değerleri esas olarak diğer değişkenin daha büyük/küçük değerlerine karşılık geliyorsa kovaryans pozitiftir. Değişkenler zıt davranış gösterme eğilimindeyse kovaryans negatiftir. Kovaryans $s_{xy}$ ile gösterilir ve aşağıdaki şekilde hesaplanır.
+
+$${s}_{xy} = \frac{\sum_{i=1}^n(x_i - \bar{x})(y_i - \bar{y})}{n-1}$$
+
+```{r}
+
+head(iris)
+cov(iris$Sepal.Length,iris$Petal.Length) # pozitif ilişki var
+cov(iris$Sepal.Length,iris$Sepal.Length)
+
+
+```
+
+## Korelasyon
+
+Korelasyon, nicel değişkenler arasındaki ilişkiyi incelemek için yaygın olarak kullanılan bir yöntemdir. **Karl Pearson'ın** Pearson moment korelasyon katsayısı olarak da bilinen doğrusal korelasyon katsayısı **r**'dir. Doğrusal korelasyon katsayısı, iki değişken arasındaki doğrusal ilişkinin gücünü ölçer.
+
+![](images/korelasyon.png)
+
+-   Korelasyon, kovaryansın standartlaştırılmış halidir.
+
+-   Standartlaştırmadan kaynaklanan bilgi kaybı vardır.
+
+-   Standartlaştırılmış olduğu için korelasyonun birimi yoktur, birimsizdir.
+
+-   Korelasyon -1 ve +1 arasında değer alır.
+
+-   Korelasyon , ±1'e yakınsa, iki değişken yüksek oranda ilişkilidir ve bir saçılım grafiği üzerinde çizilirse, veri noktaları bir çizgi etrafında kümelenir.
+
+-   Korelasyon , ±1'den uzaksa, veri noktaları daha geniş bir alana dağılır.
+
+-   Korelasyon 0'a yakınsa, veri noktaları esasen yatay bir çizgi etrafında dağılır ve bu, değişkenler arasında neredeyse hiçbir doğrusal ilişki olmadığını gösterir.
+
+-   r=1 ise değişkenler arasında pozitif yönlü tam bir doğrusal ilişki vardır.
+
+-   r=-1 ise değişkenler arasında negatif (ters) yönlü tam bir doğrusal ilişki vardır.
+
+-   r=0 ise değişkenler arasında doğrusal ilişki yoktur.
+
+-   Korelasyon nedensel ilişki değildir.
+
+-   Korelasyon değişkenler arasındaki sebep sonuç ilişkilerini açıklamaz.
+
+-   Korelasyon matematiksel ilişkidir.
+
+$$
+r=\frac{\sum_{i=1}^n(x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^n(x_i-\bar{x})^2}\sqrt{\sum_{i=1}^n(y_i-\bar{y})^2}} = \frac{s_{xy}}{s_xs_y}
+$$
+
+İki değişken arasındaki doğrusal ilişkinin miktarı için açık bir sınıflandırma kuralı yoktur. Bununla birlikte, aşağıdaki tablo, Pearson çarpım momenti korelasyon katsayısının sayısal değerlerinin nasıl ele alınacağı konusunda temel bir fikir verebilir.
+
+| Korelasyon Katsayısı (r) | İlişkinin Derecesi |
+|--------------------------|--------------------|
+| $r > 0.90$               | Çok kuvvetli       |
+| $0.70 < r\le 0.90$       | Kuvvetli           |
+| $0.50 < r\le 0.70$       | Orta               |
+| $0.30 < r\le 0.50$       | Düşük              |
+| $r < 0.30$               | Zayıf              |
+
+```{r}
+
+cor(iris$Sepal.Length,iris$Petal.Length) # kuvvetli ilişki vardır.
+
+plot(iris$Sepal.Length,iris$Petal.Length,
+     col="blue",
+     xlab = "Sepal",
+     ylab = "Petal",
+     main = "Sepal vs Petal Saçılım Grafiği")
+```
+
+## Kontenjans Katsayısı
+
+**Kontenjans katsayısı C**, kategorik veriler için $\chi 2$ tabanlı bir ilişki ölçüsüdür. Bağımsızlık için $\chi 2$ testine dayanır. $\chi 2$ istatistiği, kontenjans durum tablolarındaki (iki yönlü tablo, çapraz tablo tablosu veya çapraz tablolar olarak da bilinir) değişkenler arasında istatistiksel bir ilişki olup olmadığını değerlendirmeyi sağlar. Bu tür tablolarda değişkenlerin dağılımı matris formatında gösterilir. İki nominal (kategorik) değişken arasında anlamlı bir ilişki olup olmadığını belirlemek için kullanılır.
+
+$$
+\chi 2=\sum\frac{(G-B)^2}{B}
+$$
+
+Burada G gözlemlenen frekansı ve B ise beklenen frekansı temsil eder . Ki-kare test istatistiği ile iki kategorik değişken arasında ilişki olup olmadığı araştırılır. Hipotez aşağıdaki gibi kurulur:
+
+$H_0:$ Değişkenler arasında ilişki yoktur.
+
+$H_1:$ Değişkenler arasında ilişki vardır.
+
+Kontenjans katsayısı ise şu şekilde elde edilir:
+
+$$
+C=\sqrt{\frac{\chi2}{n+\chi2}}
+$$
+
+Burada n satır ve sütun toplamlarını ifade eder. C katsayısı 0 ile 1 arasında bir değer alır. C=0 olması iki değişken arasında ilişki olmadığına, C=1 olması ile tam ilişkili olduğu anlamına gelir.
+
+```{r}
+
+# öğrencilerin sigara içme alışkanlığının egzersiz düzeyi ile ilişkili
+# olup olmadığını inceleyelim.
+
+library(MASS)
+head(survey)
+nrow(survey)
+
+tbl <-  table(survey$Smoke, survey$Exer) 
+tbl
+
+# 1.yol
+chisq.test(tbl) 
+
+# 0.4828 p değeri .05 anlamlılık düzeyinden büyük olduğu için sigara 
+# içme alışkanlığının öğrencilerin egzersiz düzeyinden bağımsız olduğu 
+# sıfır hipotezini reddedemeyiz.
+
+# 2.yol
+summary(tbl)
+
+# 3. yol
+library(vcd)
+assocstats(tbl)
+
+# C Katsayısı
+chi_squ_val <- chisq.test(tbl)$statistic
+sqrt(chi_squ_val/(sum(tbl)+chi_squ_val))
+```
+
+# Doğrusal Regresyon
+
+Basit doğrusal regresyon, iki nicel değişken arasındaki doğrusal ilişkiyi değerlendirmeye izin veren istatistiksel bir yaklaşımdır. Daha doğrusu, ilişkinin nicelleştirilmesini ve öneminin değerlendirilmesini sağlar. Çoklu doğrusal regresyon, bu yaklaşımın bir yanıt değişkeni (nicel) ile birkaç açıklayıcı değişken (nicel veya nitel) arasındaki doğrusal ilişkileri değerlendirmeyi mümkün kılması anlamında, basit doğrusal regresyonun bir genellemesidir.
+
+Gerçek dünyada, çoklu doğrusal regresyon, basit doğrusal regresyondan daha sık kullanılır. Bu çoğunlukla böyledir çünkü, Çoklu doğrusal regresyon, diğer değişkenlerin etkisini kontrol ederken (yani etkiyi ortadan kaldırırken) iki değişken arasındaki ilişkiyi değerlendirmeye izin verir. Veri toplamanın da kolaylaşmasıyla, veriler analiz edilirken daha fazla değişken dahil edilebilir ve dikkate alınabilir.
+
+Basit doğrusal regresyonda, değişkenlerden biri yanıt veya bağımlı değişken olarak kabul edilir ve y ekseninde temsil edilir. Diğer değişken ise açıklayıcı veya bağımsız değişken olarak da adlandırılır ve x ekseninde temsil edilir.
+
+Basit doğrusal regresyon, iki değişken arasında doğrusal bir ilişkinin varlığını değerlendirmeye ve bu bağlantıyı nicelleştirmeye izin verir. Doğrusallığın, iki değişkenin doğrusal olarak bağımlı olup olmadığını test etmesi ve ölçmesi anlamında doğrusal regresyonda güçlü bir varsayım olduğuna dikkat etmek gerekmektedir.
+
+Doğrusal regresyonu güçlü bir istatistiksel araç yapan şey, açıklayıcı/bağımsız değişken bir birim arttığında yanıtın/bağımlı değişkenin hangi nicelikle değiştiğini ölçmeye izin vermesidir. Bu kavram lineer regresyonda anahtardır ve aşağıdaki soruları yanıtlamaya yardımcı olur:
+
+-   Reklama harcanan miktar ile belirli bir dönemdeki satışlar arasında bir bağlantı var mı?
+
+-   Tütün vergilerindeki artış tüketimini azaltır mı?
+
+-   Bölgeye bağlı olarak bir konutun en olası fiyatı nedir?
+
+-   Bir kişinin bir uyarana tepki verme süresi cinsiyete bağlı mıdır?
+
+Basit doğrusal regresyon analizinde, bağımlı değişken y ile bağımsız değişken x arasındaki ilişki doğrusal bir denklem şeklinde verilir.
+
+$$
+y=\beta_0+\beta_1x
+$$
+
+Burada, $\beta_0$ sayısına kesme noktası denir ve regresyon doğrusu ile y ekseninin (x=0) kesişme noktasını tanımlar. $\beta_1$ sayısına regresyon katsayısı denir. Regresyon doğrusu eğiminin bir ölçüsüdür. Böylece $\beta_1$, x değeri 1 birim arttığında y değerinin ne kadar değiştiğini gösterir. Model, x ve y arasında kesin bir ilişki verdiği için deterministik bir model olarak kabul edilir.
+
+Ancak birçok durumda, iki değişken x ve y arasındaki ilişki kesin değildir. Bunun nedeni, bağımlı değişken y'nin, tahmin değişkeni x tarafından tam olarak yakalanmayan diğer bilinmeyen ve/veya rastgele süreçlerden etkilenmesidir. Böyle bir durumda veri noktaları düz bir çizgi üzerinde sıralanmaz. Bununla birlikte, veriler hala temeldeki doğrusal bir ilişkiyi takip edebilir. Bu bilinmeyenleri dikkate almak için lineer model denklemine $\varepsilon$ ile gösterilen rastgele bir hata terimi eklenir, böylece yukarıdaki deterministik modelin aksine olasılıklı bir model elde edilir.
+
+$$
+y=\beta_0+\beta_1x+\varepsilon
+$$
+
+Burada hata terimi $\varepsilon_i$'nin bağımsız normal dağılımlı değerlerden oluştuğu varsayılır, $e_i$\~$N(0,\sigma^2)$.
+
+Doğrusal regresyon modeli hakkında aşağıdaki varsayımlar yapılır:
+
+-   Bağımlı değişken tesadüfi bir değişkendir ve normal dağılım göstermektedir.
+
+-   Tahmin hataları tesadüfidir ve normal dağılım gösterirler.
+
+-   Hatalar birbirinden bağımsızdır (otokorelasyon yoktur).
+
+-   Hata varyansı sabittir ve veriler arasında hiç değişmediği varsayılır (eşit varyanslılık-homoscedasticity).
+
+-   Eğer çoklu regresyon analizi yapılıyorsa, bağımsız değişkenlerin birbirleri ile bağlantısının olmaması gereklidir. Buna çoklu bağlantı (multicollinearity) olmaması varsayımı adı verilir.
+
+-   Bağımlı değişken ile bağımsız değişkenler arasında doğrusal bir ilişki olmalıdır.
+
+-   Gözlem sayısı parametre sayısından büyük olmalıdır.
+
+![](images/regresyon.png)
+
+Kalıntı olarak da adlandırılan her bir belirli değer çifti $(x_i,y_i)$ için hata $e_i$, gözlemlenen $y_i$ değeri ile $\hat{y_i}$ tahmin değerinin farkıyla hesaplanır. En iyi modele karşılık gelen regresyon eğrisini elde etmek için en En Küçük Kareler yöntemi (EKK) kullanılır. Kullanılan veriler ile en uygun doğruyu elde etmek için hata karelerinin hata toplamı en aza indirilir. Bir başka deyişle bu yöntem, ölçüm sonucu elde edilmiş veri noktalarına mümkün olduğu kadar yakın geçecek bir eğri bulmaya yarar.
+
+$$
+min(EKK)=\sum_{i=1}^ne_i^2=\sum_{i=1}^n(y_i-\hat{y_i})^2
+$$
+
+Eşitlik $\beta_0$ ve $\beta_1$ parametrelerine göre kısmi türevleri alınarak sıfıra eşitlendiğinde $\beta_0$ ve $\beta_1$ parametrelerinin EKK tahminleri elde edilir.
+
+$$
+\hat{\beta_1}=\frac{\sum_{i=1}^n(x_i-\bar{x})(y_i-\bar{y})}{\sum_{i=1}^n(x_i-\bar{x})^2}=\frac{cov(x,y)}{var(x)}
+$$
+
+$$
+\hat{\beta_0}=\bar{y}-\hat{\beta_1}\bar{x}
+$$
+
+```{r}
+
+library(gapminder)
+library(dplyr)
+library(ggplot2)
+
+# gapminder veri setine bakalım
+
+glimpse(gapminder)
+summary(gapminder)
+
+# kişi başına milli gelir ile yaşam beklentisi değişkenlerini görselleştirelim.
+
+ggplot(gapminder, aes(gdpPercap, lifeExp)) +
+  geom_point()
+
+ggplot(gapminder, aes(gdpPercap, lifeExp)) +
+  geom_point() + 
+  geom_smooth(method = "lm",se=TRUE)
+
+# regresyon modeli kuralım
+
+model1 <- lm(lifeExp ~ gdpPercap, data = gapminder)
+model1
+
+```
+
+Yani burada söyleyebileceğimiz şey, GSYİH'daki her 1 artış için, yaşam beklentisinde 0.0007649 yıllık bir artış görmeyi bekleyebiliriz. Bu özellikle büyük değil - ama o zaman, GSYİH'de tek bir dolarlık artış da çok fazla değil! Modelimizi daha iyi anlayabilmek için model üzerinde summary() fonksiyonunu kullanabiliriz. Ayrıca artıkların normalliğini de bakmak fa fayda var.
+
+```{r}
+
+summary(model1)
+
+#artıkların normalliğini inceleyelim
+# 1. yol - ggplot ile
+ggplot(mapping=aes(sample = resid(model1))) +
+    stat_qq() + 
+    stat_qq_line(col="red",size=1.25) +
+    theme_minimal()
+
+# 2.yol - base R plot ile
+qqnorm(resid(model1))
+qqline(resid(model1))
+
+# 3. yol olsrr paketi ile (başka paketler de var tabii ki)
+library(olsrr)
+
+ols_plot_resid_qq(model1) 
+ols_test_normality(model1)
+ols_plot_resid_fit(model1)
+ols_plot_resid_hist(model1)
+```
+
+Artıklara öncelikle bakarsak, bir noktadan sonra sapmalar olduğunu görebiliriz. Bu durum bize artıkarın normal dağılmadığı mesajını veriyor. Normallik testlerinden de bu mesajı doğrulayabiliriz.
+
+**`ols_plot_resid_fit`** fonksiyonu doğrusal olmamayı, eşit olmayan hata varyanslarını ve aykırı değerleri tespit etmek için y eksenindeki artıkların ve x eksenindeki kestirim değerlerinin bir dağılım grafiğini üretmektedir. Artıkların aşağıdaki şekilde davranış göstermesi beklenir.
+
+-   Artıklar, ilişkinin doğrusal olduğunu gösteren 0 çizgisi etrafında rastgele dağılır.
+
+-   Artıklar, hata varyansının homojenliğini gösteren 0 çizgisi etrafında yaklaşık bir yatay bant oluşturur.
+
+-   Hiçbir artık, aykırı değer olmadığını gösteren artıkların rastgele modelinden gözle görülür şekilde uzakta değildir.
+
+**`summary`** fonksiyonu ile modelimizin verilere ne kadar iyi uyduğu hakkında biraz daha bilgi alıyoruz. Genel modelimiz ve her değişken için p-değerlerini görebiliriz. $R^2$ değeri, veri kümenizdeki varyansın ne kadarının modeliniz tarafından açıklanabileceğini - temel olarak, modelinizin verilere ne kadar iyi uyduğunu gösterir. Bu değer 0 ile 1 arasında değişir ve büyük olması beklenir. Genel olarak, modelinizde kaç değişken kullandığınızı telafi eden düzeltilmiş $R^2$'yi kullanırız - aksi halde başka bir değişken eklemek her zaman $R^2$'yi artırır.
+
+Ancak GSYİH'nın logaritması alındığında değişkenlerimiz arasında çok daha normal bir doğrusal ilişki görebiliriz.
+
+```{r}
+
+ggplot(gapminder, aes(log(gdpPercap), lifeExp)) +
+  geom_point() + 
+  geom_smooth(method = "lm",se=TRUE)
+
+model2 <- lm(lifeExp ~ log(gdpPercap), data = gapminder)
+summary(model2)
+```
+
+$R^2$ değerimizin arttığını görebiliyoruz. İlk modelde bu değer 0,34 iken ikinci modelde 0,652 olarak bulunmuştur Bu nedenle, verilerimizi log-dönüştürmek, modelimizin verilere daha iyi uymasına yardımcı oluyor gibi görünüyor. Veri setimizdeki continent (kıta) ve year (yıl) değişkenlerini de modele ekleyerek çoklu regresyon analizi sonuçlarına bakalım.
+
+```{r}
+
+model3 <- lm(lifeExp ~ log(gdpPercap) + continent + year, data = gapminder)
+summary(model3)
+
+```
+
+Bu sonuçlara göre $R^2$ değeri 0.79'a yükselmiştir. değişken sayısını artırmak model başarısını artırmış görünüyor. Ayrıca katsayıların hepsinin de anlamlı çıktığı göz ardı edilmemelidir.
+
+Afrika kıtası haricinde, veri kümemizdeki kıtaların her biri için bir satır var. Bunun sebebi Afrika kıtası referans kıta olarak burada belirlenmesinden kaynaklanmaktadır. Yani kıtalara göre verileri yorumlarken Afirika kıtasına göre değerlendirme yapılacaktır. Örneğin Avrupa'da olmak ortalama olarak, Afrika'da olmaktan 12.27 yıl daha fazla yaşam beklentisine sahip olmak anlamına gelmektedir.
+
+Model her bağımsız değişkenin birbirinden bağımsız olduğunu varsaymasıdır. Bununla birlikte, bunun GSYİH ve kıta için doğru olmadığından oldukça emin olabiliriz - genellikle Okyanusya'daki çoğu ülkenin, örneğin Afrika'daki çoğu ülkeden daha yüksek kişi başına GSYİH'ya sahip olduğunu varsayabiliriz. Bu nedenle, bu iki değişken arasında bir etkileşim terimi eklemeliyi düşünebiliriz. Bunu, model ifademizde bu terimler arasındaki + yerine \* ile değiştirerek yapabiliriz.
+
+```{r}
+
+model4 <- lm(lifeExp ~ log(gdpPercap) * continent + year, data = gapminder)
+summary(model4)
+```
+
+Sonuçlar $R^2$ değerinin 0.80'e yükseldiğini gösteriyor. Şimdi bu modeli kullanarak yeni bir gözlem ile kestirim yapalım.
+
+```{r}
+
+# yeni verilerler kestirim
+gap_pred <- data.frame(lifeExp=c(70,75,80),
+                       gdpPercap=c(9000,12000,15000),
+                       continent=c("Asia","Americas","Europe"),
+                       year=c(2012,2012,2012))
+
+predict(model4, newdata = gap_pred,interval = "confidence", level = 0.99)
+
+# model tahminlerine ulaşmak
+fitted <- data.frame(predict=model4$fitted.values)
+head(fitted,10)
+
+# original ve kestirim sonuçlarını görselleştirelim
+ggplot(gapminder, aes(gdpPercap)) + 
+  geom_point(aes(y = lifeExp)) + 
+  geom_point(aes(y = fitted$predict), color = "blue", alpha = 0.25)
+```
+
+Model sonuçları içerisinde bakılması gereken en önemli kısımlardan birisi de artıklardır. Artıklar kullanılarak modellerin başarılarıını ölçen metrikler bulunmaktadır. Artıkların ortalaması ya da [**RMSE**](https://en.wikipedia.org/wiki/Root-mean-square_deviation#:~:text=The%20root%2Dmean%2Dsquare%20deviation,estimator%20and%20the%20values%20observed.&text=RMSD%20is%20the%20square%20root%20of%20the%20average%20of%20squared%20errors.)(Root mean square error) bunlardan bazılarıdır. Ayrıca [**AIC**](https://en.wikipedia.org/wiki/Akaike_information_criterion), [**BIC**](https://en.wikipedia.org/wiki/Bayesian_information_criterion)gibi bilgi kriterleri de model başarımlarını ölçmede yardımcı metriklerdir.
+
+```{r}
+
+# Modellerin metriklerini bir araya getirelim
+
+ME <- function(model){
+  mean(residuals(model))
+  
+}
+
+RMSE <- function(model){
+  sqrt(sum(residuals(model)^2) / df.residual(model))
+}
+
+adj.R2 <- function(model){
+   summary(model)$adj.r.squared
+}
+
+metrics <-
+  data.frame(
+    model = c("model1", "model2", "model3", "model4"),
+    ME = c(ME(model1), ME(model2), ME(model3), ME(model4)),
+    AIC = c(AIC(model1), AIC(model2), AIC(model3), AIC(model4)),
+    adj.R2 = c(
+      adj.R2(model1),
+      adj.R2(model2),
+      adj.R2(model3),
+      adj.R2(model4)
+    ),
+    RMSE = c(RMSE(model1), RMSE(model2), RMSE(model3), RMSE(model4))
+  )
+
+metrics
+```
+
+Model sonuçlarının daha güzel ve temiz (tidy) bir formatta görünmesi için **`broom`** paketi kullanılabilir.
+
+```{r}
+
+library(broom)
+
+# gözlem düzeyinde sonuçlar
+augment(model4)
+
+#model düzeyinde sonuçlar
+glance(model4)
+```

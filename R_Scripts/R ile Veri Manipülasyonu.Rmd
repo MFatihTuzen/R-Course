@@ -1,0 +1,433 @@
+---
+title: \vspace{2cm} \begin{Huge} \textbf {R ile Veri Manipülasyonu} \end{Huge} \vspace{0.5cm}
+author: \Large Muhammed Fatih TÜZEN
+date: "06 01 2022"
+header-includes:
+ - \usepackage{fancyhdr}
+ - \pagestyle{fancy}
+ - \fancyhead[LO,LE]{Muhammed Fatih TÜZEN}
+ - \usepackage{titling}
+ - \pretitle{\begin{center}
+  \includegraphics[width=4in,height=4in]{D:/R_Course/R/images/dplyr.png}\Huge\\}
+ - \posttitle{\end{center}}
+output: 
+ pdf_document : 
+   toc_depth: 2
+   number_sections: yes
+   latex_engine: xelatex
+   highlight: tango
+toc-title: "İÇİNDEKİLER"
+fontsize: 12pt
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = FALSE)
+```
+
+\centering
+
+\raggedright
+
+\newpage
+
+\renewcommand{\contentsname}{İÇİNDEKİLER}
+
+\tableofcontents
+
+\newpage
+
+# dplyr Paketi
+
+**`dplyr`**, RStudio'dan Hadley Wickham tarafından geliştirilmiş ve en yaygın veri işleme zorluklarını çözmenize yardımcı olan bir veri işleme dilbilgisidir. **`dplyr`** paketi, **`devtools`** paketi ve `install_github()` fonksiyonu kullanılarak **CRAN**'**dan** veya **GitHub'dan** kurulabilir. GitHub deposu genellikle paketteki en son güncellemeleri ve geliştirme sürümünü içerir.
+
+CRAN sayfasından yüklemek için;
+
+    > install.packages("dplyr")
+
+GitHub sayfasından yüklemek için;
+
+    > install_github("hadley/dplyr")
+
+dplyr paketinde sıklıkla kullanılan fonksiyonlar şunlardır:
+
+-   **`select`** : veri çerçevesinden istenilen sütunları seçer.
+
+-   **`filter`** : mantıksal koşullara dayalı olarak bir veri çerçevesinden satırları filtreler.
+
+-   **`arrange`** : satıları sıralar.
+
+-   **`rename`** : sütun isimlerini yeniden isimlendirir.
+
+-   **`mutate`** : yeni değişkenler/sütunlar ekler veya mevcut değişkenleri dönüştürür.
+
+-   **`summarise/ summarize`** : veri çerçevesindeki farklı değişkenlerin özet istatistiklerini oluşturur
+
+-   **`%>%`** (pipe) operatörü birden çok eylemi ardışık düzende birbirine bağlamak için kullanılır.
+
+# Counties veri seti
+
+Veri manipülasyonu için 2015 yılı ABD nüfus sayımına ilişkin **counties** veri seti kullanılacaktır. Bu veri setinde eyalet ve şehir detayında nüfus, gelir, ırk, coğrafi yapı, işgücü gibi değişkenler yer almaktadır.
+
+```{r}
+
+library(dplyr)
+counties <- readRDS("datasets/counties.rds")
+
+# veri setinin yapısı hakkında bilgi sağlar
+glimpse(counties)
+
+```
+
+# select
+
+```{r}
+
+# belirli sütunları seçmek
+counties %>%
+select(state, county, population, unemployment)
+
+# belli aralıkta bütün sütunların seçilmesi
+counties %>%
+select(state, county, drive:work_at_home)
+
+# belirli bir ifadeyi içeren sütunları seçmek
+counties %>%
+select(state, county, contains("employed"))
+
+# belirli bir ifade ile başyalan sütunları seçmek
+counties %>%
+select(state, county, starts_with("income"))
+
+# belirli bir ifade ile biten sütunları seçmek
+counties %>%
+select(state, county, ends_with("work"))
+
+# belirli sütunları hariç tutarak seçmek
+counties %>%
+select(census_id:population,-c(men:land_area))
+
+# belirli veri tipindeki sütunları seçmek
+counties %>%
+select(where(is.character))
+
+```
+
+# arrange
+
+```{r}
+
+counties_selected <- counties %>%
+select(state, county, population, unemployment)
+
+# artan sıralama (ascending)
+counties_selected %>%
+arrange(population)
+
+# azalan sıralama (descending)
+counties_selected %>%
+arrange(desc(population))
+
+counties_selected %>%
+arrange(state,desc(population))
+```
+
+# filter
+
+```{r}
+
+# sadece New York'u filtrele
+counties_selected %>%
+arrange(desc(population)) %>%
+filter(state == "New York")
+
+# işsizlik oranı 6'dan küçük olanları filtrele
+counties_selected %>%
+arrange(desc(population)) %>%
+filter(unemployment < 6)
+
+# birden fazla koşul
+counties_selected %>%
+arrange(desc(population)) %>%
+filter(state == "New York",unemployment < 6)
+
+```
+
+# mutate
+
+```{r}
+
+# işsiz nüfus sayısına ilişkin değişken üretme
+counties_selected %>%
+mutate(unemployed_population = population * unemployment / 100)
+
+# yeni sütun ekle
+counties_selected %>%
+mutate(unemployed_population = population * unemployment / 100) %>%
+arrange(desc(unemployed_population))
+
+# var olan sütunu güncelle
+counties %>%
+  select(state, county, population, men,women) %>% 
+mutate(population = men + women)
+
+# birden fazla yeni değişken üretme
+counties %>%
+  select(state, county, population, men,women) %>% 
+mutate(men_ratio = men/population*100,
+       women_ratio = women/population*100)
+
+# transmute sadece yeni eklenen değişkenleri gösterir
+
+counties %>%
+  select(state, county, population, men,women) %>% 
+transmute(men_ratio = men/population*100,
+       women_ratio = women/population*100)
+
+# mutate_at ile koşula göre birden fazla değişkene aynı fonksiyon uygulanabilir.
+scale2 <- function(x, na.rm = FALSE) (x - mean(x, na.rm = na.rm)) / sd(x, na.rm)
+
+counties_selected %>% 
+  mutate_at(c("population","unemployment"),scale2)
+
+counties_selected %>% # birden fazla argüman kullanımı
+  mutate_at(c("population","unemployment"),scale2,na.rm = TRUE)
+
+# mutate_if ile koşula göre birden fazla değişkende değişiklik yapılabilir.
+str(counties_selected)
+
+counties_selected <- counties_selected %>% 
+  mutate_if(is.character,as.factor)
+
+str(counties_selected)
+
+counties_selected %>% 
+  mutate_if(is.numeric, scale2, na.rm = TRUE)
+```
+
+# rename
+
+```{r}
+
+# yeniden isimlendirmede eşitliği sol tarafı yeni isim olmalı
+counties_selected %>%
+rename(unemployment_rate = unemployment)
+
+# select ile beraber de yeniden isimlendirme yapılabilir
+counties_selected %>%
+select(state, county, population, unemployment_rate = unemployment)
+```
+
+# count
+
+```{r}
+
+# count ile veri setinde sayma işlemleri yapılır
+counties %>%
+count()
+
+# state dağılımını elde etmek
+counties %>%
+count(state)
+
+# sort = TRUE ile büyükten küçüge sıralama yapılabilir
+counties %>%
+count(state, sort = TRUE)
+
+# wt argümanı ile değişken toplamları hesaplanabilir
+counties %>%
+count(state, wt = population, sort = TRUE)
+```
+
+# group_by ve summarize
+
+```{r}
+
+counties %>%
+summarize(total_population = sum(population))
+
+counties %>%
+summarize(total_population = sum(population),
+average_unemployment = mean(unemployment))
+
+# istenilen düzeye göre hesaplamalar group_by ile yapılır
+counties %>%
+group_by(state) %>%
+summarize(total_pop = sum(population),
+average_unemployment = sum(unemployment))
+
+counties %>%
+group_by(state) %>%
+summarize(total_pop = sum(population),
+average_unemployment = mean(unemployment)) %>%
+arrange(desc(average_unemployment))
+
+# birden fazla değişken düzeyinde gruplama
+counties %>%
+group_by(state, metro) %>%
+summarize(total_pop = sum(population))
+
+# elde edilen veri üzerinden devam edilecekse ungroup kullanılmalı.
+# ungroup kullanılmazsa sonradan yapılan işlemler group_by değişkenleri düzeyinde
+# devam eder
+
+counties %>%
+group_by(state, metro) %>%
+summarize(total_pop = sum(population)) %>%
+ungroup()
+
+# top_n en yüksek ya da en düşük sonuçları listeleme
+counties_selected %>%
+group_by(state) %>%
+top_n(1, population) # her eyaletteki en yüksek nüfuslu yer
+
+counties_selected %>%
+group_by(state) %>%
+top_n(-1, population) # her eyaletteki en düşük nüfuslu yer
+
+counties_selected %>%
+group_by(state) %>%
+top_n(2, population) # her eyaletteki en yüksek nüfuslu 2 yer
+
+# summarise_all bütün değişkenler için özetleme yapar
+counties_selected %>% summarise_all(nlevels)
+
+counties_selected %>% 
+  select(-county) %>% 
+  group_by(state) %>% 
+  summarise_all(mean)
+
+# summarise_at belli değişkenler için özetleme yapar
+counties_selected %>% 
+  select(-county) %>% 
+  group_by(state) %>% 
+  summarise_at("population",mean)
+
+# summarise_if ile koşula göre özetleme yapar
+counties_selected %>% 
+  summarize_if(is.numeric, mean, na.rm = TRUE)
+```
+
+# case when
+
+```{r}
+
+# case_when ile yeniden kodlama yapılabilir. 
+# gelir değişkenini sınıflandıralım
+summary(counties$income)
+
+counties_income <- counties %>% 
+  select(state, county,income) %>% 
+  mutate(income_new= case_when(
+    between(income,19328,38827) ~"low",
+    between(income,38828,52249)~"medium",
+    income > 52249 ~"high")
+      )
+counties_income
+table(counties_income$income_new)
+```
+
+# reshaping
+
+[![](images/reshape.jpg)](https://techvidvan.com/tutorials/data-reshaping-in-r/)
+
+```{r}
+
+library(tidyr)
+
+# gather tabloyu yatay formattan dikey formata dönüştürür (transpose).
+
+counties_gender <- counties %>% 
+  select(state,county,men,women) %>% 
+  gather(key="gender",value = "population",-c(state,county))
+counties_gender
+
+counties_race <- counties %>% 
+  select(state,county,hispanic:pacific) %>% 
+  gather(key="race",value = "ratio",-c(state,county))
+counties_race
+# spread tabloyu dikey formattan yatay formata dönüştürür (transpose).
+
+counties_gender_hor <- counties_gender %>% 
+  spread(key=gender,value = population)
+counties_gender_hor
+
+# unite
+
+counties_unite <- counties %>% 
+  select(state:population) %>% 
+  unite("region_metro",c(region,metro))
+counties_unite
+
+counties_unite <- counties %>% 
+  select(state:population) %>% 
+  unite("region_metro",c(region,metro),sep = "-",remove = FALSE)
+counties_unite
+
+counties_unite <- counties %>% 
+  select(state:population) %>% 
+  unite("region_metro",c(region,metro),sep = "-")
+counties_unite
+
+# separate
+counties_separate <- counties_unite %>% 
+  separate(region_metro,c("region2","metro2"),sep = "-")
+counties_separate
+```
+
+# join
+
+![](images/join.jpg){width="650"}
+
+-   **Inner join:** `merge(df1, df2)`
+
+-   **Outer join:**`merge(x = df1, y = df2, by = "no", all = TRUE)`
+
+-   **Left outer:**`merge(x = df1, y = df2, by = "no", all.x = TRUE)`
+
+-   **Right outer:**`merge(x = df1, y = df2, by = "no", all.y = TRUE)`
+
+```{r}
+
+set.seed(1234)
+# data frame 1
+
+df_1 <- data.frame(no = c(1:10),
+                       math = round(rnorm(10,70,20)),
+                       stat = round(rnorm(10,60,30)))
+df_1 
+# data frame 2
+
+df_2 <-  data.frame(no = c(2, 4, 6, 7, 11,12),
+                 city = c("Ankara","İzmir","İzmir","İstanbul","Adana","Trabzon"),
+                 age =c(20,18,22,19,25,21)) 
+df_2
+
+# Inner Join - her iki tablonun ortak kayıtlarını eşleştirir
+
+merge(x=df_1,y=df_2) # merge ile 
+merge(x=df_1,y=df_2,by="no") # merge ile
+merge(x=df_1,y=df_2,by=c("no"="no")) # merge ile
+
+df_1 %>% inner_join(df_2) # dplyr-inner_join ile
+df_1 %>% inner_join(df_2,by=c("no"="no")) #dplyr-inner_join ile
+
+# Left Join - ilk tablonun tamamını ve ikinci tablodan eşleşenleri getirir
+
+merge(x=df_1,y=df_2,by="no",all.x = TRUE) # merge ile 
+
+df_1 %>% left_join(df_2,by=c("no"="no")) # dplyr-left_join ile
+
+# Right Join -ikinci tablonun tamamını ve ilk tablodan eşleşenleri getirir
+
+merge(x=df_1,y=df_2,by="no",all.y = TRUE) # merge ile 
+
+df_1 %>% right_join(df_2,by=c("no"="no")) # dplyr-right_join ile
+
+# Full Join -her iki tablodan bütün kayıtları eşleştirir
+
+merge(x=df_1,y=df_2,by="no",all = TRUE) # merge ile 
+
+df_1 %>% full_join(df_2,by=c("no"="no")) # dplyr-right_join ile
+```

@@ -1,0 +1,1289 @@
+---
+title: \vspace{2cm} \begin{Huge} \textbf {R Programlamaya Giriş} \end{Huge} \vspace{0.5cm}
+author:  \Large Muhammed Fatih TÜZEN
+date: "04 01 2022"
+header-includes:
+ - \usepackage{fancyhdr}
+ - \pagestyle{fancy}
+ - \fancyhead[LO,LE]{Muhammed Fatih TÜZEN}
+ - \usepackage{titling}
+ - \pretitle{\begin{center}
+ - \includegraphics[width=5in,height=5in]{D:/R_Course/R/images/r.png}\Huge\\}
+output: 
+ pdf_document : 
+   toc_depth: 2
+   number_sections: yes
+   highlight: tango
+   latex_engine: xelatex
+toc-title: "İÇİNDEKİLER"
+fontsize: 12pt
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\centering
+
+\raggedright
+
+\newpage
+
+\renewcommand{\contentsname}{İÇİNDEKİLER}
+
+\tableofcontents
+
+\newpage
+
+# Giriş
+
+## Çalışma Dizini
+
+Çalışma Dizini, üzerinde çalıştığınız veri kümeleri vb. gibi tüm gerekli dosya ve belgelerinizi içeren yerdir. Çalışma dizininizi ayarlamanın iki yolu vardır. İlk yol [**getwd ve setwd**]{.ul} işlevlerini kullanmaktır. Diğer yol ise RStudio üzerinden [**Session\>Set Working Directory**]{.ul} youluyla yapılabilir.
+
+```{r}
+
+getwd() #Çalışma dizini öğrenilir.
+
+# Çalışma dizini istenilen şekilde ayarlanabilir.
+#setwd("C:/Users/mfati") # windows
+# setwd("~/Users/mfati") # linux
+```
+
+[**dir**]{.ul} veya [**list.files**]{.ul} komutları ile dizinde yer alan dosyalar öğrenilebilir.
+
+```{r}
+
+dir("datasets")
+list.files("datasets")
+
+```
+
+-   [**file.exists**]{.ul} kullanılarak klasörün var olup olmadığı sorgulanabilir.
+
+-   [**dir.create**]{.ul} komutu ile yeni bir klasör oluşturmak mümkündür.
+
+```{r}
+
+file.exists("R-Programlamaya-Giriş.pdf")
+file.exists("newfolder")
+dir.create("newfolder")
+file.exists("newfolder")
+```
+
+## Yardım
+
+Herhangi bir fonksiyonla ilgili yardım almak için "?" veya help () komutları kullanılır.
+
+```{r}
+
+# mean ve median fonksiyonları hakkında yardım aşağıdaki şekillerde alınabilir
+?mean
+help(median)
+```
+
+## Yardımcı Bilgiler
+
+**R** komutlarında *Büyük-küçük harf duyarlılığı (case sensitive)* vardır.
+
+```{r}
+
+a <- 5
+print(a)
+
+A <- 6
+print(A)
+
+```
+
+**Noktalı virgül (;)** işareti ile aynı satırda birden fazla kod çalıştırılabilir hale getirilir.
+
+```{r}
+
+x <- 1 ; y <- 2 ; z <- 3
+x; y; z
+```
+
+Komutlar arası açıklamaları ve yorumları **\#(hashtag)** ile yazabiliriz. Hastagli satırlar, kod olarak algılanıp çalıştırılmaz. Bu kısımlara yazılan kodlar ile ilgili hatırlatıcı bilgiler (comment) yazılabilir.
+
+```{r}
+
+# x <- 1:5 
+
+# 6 ile başyalan ve  10 ile  biten tamsayıları c vektörüne atayalım
+c <- 6:10
+c
+
+```
+
+-   **`ls()`** çalışma alanındaki nesne ve fonksiyonları listeler.
+
+-   **`rm(a)`** çalışma alanından **a** nesnesini siler.
+
+-   **`rm(list=ls())`** bütün çalışma alanını temizler.
+
+-   **`q()`** R'dan çıkış yapmayı sağlar.
+
+-   **`install.packages("package")`** paket yüklemeyi sağlar.
+
+-   **`library("pacakge")`** yüklü olan paketi getirir.
+
+-   **`installed.packages()`** yüklü olan paketleri listeler
+
+-   **`options(digits=10)`** sayılarda ondalık kısmın basamak sayısını ifade eder.
+
+# Temel Operatörler
+
+## Atama Operatörü
+
+Bir değişkene, tabloya veya objeye değer atarken **'\<-'** veya **'='** operatörü kullanılır. '**\<-**' atama operatöründe ok hangi yöndeyse o tarafa atama yapılır. Genellikle '**\<-**' operatörü kullanılmaktadır. Çünkü '**=**' operatörü filtrelemelerde veya işlemlerdeki '**==**' ile karıştırılabilmektedir. Ayrıca fonksiyonlar içinde de kullanılabildiği için kod karmaşasına sebebiyet verebilir. Her iki operatör de aynı işlevi görmektedir.
+
+```{r}
+
+# a'ya 20 değerini atayalım
+a <- 20
+
+# tabloyu ya da değeri görüntülemek için nesnenin kendisi de direkt yazılabilir. 
+# ya da print fonksiyonu kullanılabilir.
+
+print(a)
+
+# b'ye 12 değerini atayalım
+b <- 12
+print(b)
+# a ve b değerlerinden üretilen bir c değeri üretelim.
+
+c <- 2 * a + 3 * b
+print(c)
+
+```
+
+**c()** ile vektör oluştutulabilir. c "combine" (birleştirmek) kelimesinin ilk harfini ifade eder. Bir değişkene birden fazla değer atamak istediğimizde kullanılır.
+
+```{r}
+
+# d adında bir vektör oluşturalım ve değerler atayalım. 
+d <- c(4,7,13)
+d
+
+```
+
+Bir metini değişkene atamak istersek de aşağıdaki gibi metin "" işareti içine yazılmalıdır.
+
+```{r}
+
+metin <- "Merhaba Arkadaşlar"
+print(metin)
+```
+
+## Matematiksel Operatörler
+
+R ve R Studio, güçlü bir hesap makinesi olarak kabul edilebilir.
+
+```{r}
+
+3+5
+7*8
+88/2
+3*(12+(15/3-2))
+9^2 # karesini alır
+a <-  3
+b <-  a^2
+print(b)
+log(15) #ln15 yani doğal logaritma
+log10(1000) # 10 tabanına göre hesaplama
+exp(12) #exponential power of the number. e (2.718) üzeri 12
+factorial(6) # faktöriyel hesaplama yapar
+sqrt(81) # karekör alma
+abs(-3) # mutlak değer
+sign(-5) # işaret bulma
+sin(45) # sinüs
+cos(90) # cosinüs
+pi # pi sayısı
+tan(pi) # tanjant
+```
+
+## Mantıksal Operatörler
+
+Mantıksal sorgulamalar, koşullarda ve filtrelerde kullanılmaktadır. Verilen koşul veya filtre sağlandığında **TRUE**, sağlanmadığında ise **FALSE** değerleri elde edilmektedir. Bu mantıksal operatörler ayrıca komutlar içindeki özellikleri aktifleştirmek ve pasifleştirmek için de kullanılmaktadır.
+
+Mantıksal operatörler aşağıdaki şekilde kullanılmaktadır:
+
+-   eşittir : **==**
+
+-   eşit değildir : **!=**
+
+-   küçüktür : **\<**
+
+-   küçük eşittir : **\<=**
+
+-   büyüktür : **\>**
+
+-   büyük eşittir : **\>=**
+
+-   x değil : **!x**
+
+-   x ve y : **x&y**
+
+-   x veya y: **x\|y**
+
+```{r}
+
+3 > 5
+
+# & (ve) operatörü
+# iki durumda TRUE ise sonuç TRUE döner.
+3 < 5 & 8 > 7
+
+# bir durum FALSE diğer durum TRUE ise sonuç FALSE döner.
+3 < 5 & 6 > 7
+
+# iki durumda FALSE ise sonuç FALSE döner.
+6 < 5 & 6 > 7
+
+# | (veya) operatörü
+# Her iki durumdan birisi TRUE ise TRUE döner
+(5==4) | (3!=4)
+```
+
+# Veri Tipleri ve Yapıları
+
+R'da kulllanılan 5 temel veri tipi vardır. Bu veri tipleri atomic vectörler olarak da bilinir. Atomic olması vektörlerin homojen olması anlamına gelmektedir. Yani vektör içerisinde aynı veri tipinden değerler yer alabilir. Veri tipleri;
+
+-   numeric veya double (reel sayılar)
+
+-   integer (tamsayılar)
+
+-   complex (karmaşık sayılar)
+
+-   character (metinsel ifadeler)
+
+-   logical, TRUE ve FALSE (mantıksal)
+
+typeof() veya class() fonksiyonları ile veri tipi öğrenilebilir.
+
+```{r}
+
+# numeric
+
+a <- 3.5
+class(a)
+typeof(a) # typeof numeriklerin tipini double olarak gösterir.
+
+is.numeric(a) # verinin tipinin numerik olup olmadığı sorgulanır.
+
+# integer
+
+b <- 5
+class(b)
+is.integer(b)
+
+c <- 6L # integer olması için sayının sağına L yazılır.
+class(c)
+is.integer(c)
+
+class(as.integer(b)) # as. ile baslayan fonksiyonlar dönüşüm için kullanılır.
+
+# complex
+
+z <- 4 + 2i
+class(z)
+
+# character
+
+d <- "R Programlama"
+class(d)
+
+e <- "5.5"
+class(e)
+class(as.numeric(e))
+
+# logical
+
+x <- TRUE ; y <- FALSE
+class(c(x,y))
+as.integer(c(x,y)) # TRUE ve FALSE numeric olarak 1 ve 0 değerine karşılık gelir.
+
+```
+
+## Vektörler
+
+-   R'daki en temel nesneler vektörlerdir.
+
+-   Vektörler homojen yapıya sahiptir yani bütün elemanları aynı veri tipinde olmalıdır.
+
+-   Vektörler tek boyutludur.
+
+-   Bir vektör oluşturmak için kullanabilecek en temel fonksiyon **c()**'dir.
+
+```{r}
+
+v <- c(1,4,7,2,5,8,3,6,9)
+
+v[1] # 1. elemanını seçer
+v[3] # 3. elemanını seçer
+v[c(3,7)] # 3. ve 7. elemani secer
+v[1:6] # 1. elemandan 6. elemana kadar secer
+v[-2] # 2. elemani haric tutarak secer
+
+length(v) # vektörün uzunluğunu gösterir
+v2 <- c(v,12) # vektöre eleman ekleme
+v2
+
+# : ile başlangıç ve bitiş değerleri belli olan vektörler yaratılabilir.
+
+v3 <- 1:10
+v3
+
+v4 <- 11:20
+v4
+# Vektörler ile matematiksel işlemler yapılabilir.
+
+v3 + v4
+v3 / v4
+2 * v3 - v4
+
+# Vektörler ile ilgili kullanılabilecek bazı fonksiyonlar
+
+# seq () 
+#aritmetik bir diziden meydana gelen bir vektör oluşturmak için kullanılır. 
+seq(from = 5, to = 50, by =5) # 5 ile başlayan 50 ile biten 5şer artan vektör
+seq(from = 5, to = 50, length = 7) # 5 ile başlayan 50 ile 7 elemanlı vektör
+seq(5,1,-1) # 5 ile baslayıp 1'e kadar 1'er azaltarak vektor olusturma
+
+# rep() 
+# tekrarlı sayılar içeren vektörler oluşturulur.
+rep(10,8) # 8 tane 10 değeri olan vektör
+rep(c(1,2,3),4) # 1,2,3 vekrünün 4 defa tekrarlanması
+rep(c(1,2,3), each = 4) # each argünmanı ile sıralı ve tekrarlı vektör
+
+# rev()
+v5 <- c(3,5,6,1,NA,12,NA,8,9) # R'da NA boş gözlemi ifade eder.
+rev(v5) # vektörü tersine çevirir
+
+# rank()
+rank(v5) # elemanların sıra numarasını verir
+rank(v5, na.last = TRUE) # NA leri son sıraya atar.
+rank(v5, na.last = FALSE) # NA leri en başa koyar.
+rank(v5,na.last = NA) # NA değerlere yer verilmez
+rank(v5, na.last = "keep") # NA değerler oldukları gibi görünürler.
+
+# all()
+all(v5>5) # vektördeki tüm elemanların şartı sağlayıp sağlamadıkları test edilir.
+all(v5>0) # vektörde NA varsa sonuç NA döner
+all(v5>0, na.rm = TRUE) # NA gözlemler hariç tutularak sonuç üretir.
+
+# any()
+any(v5>6) # vektördeki en az bir elemanın şartı sağlayıp sağlamadığı test edilir.
+any(v5==9) 
+
+# unique()
+v6 <- rep(1:5,3)
+v6
+unique(v6) # tekrarlı gözlemler temizlenir
+
+# duplicated()
+duplicated(v6) # tekrarlı gözlemlerin varlığını kontrol eder
+v6[duplicated(v6)] # tekrarlı gözlemleri listeler
+
+# sort()
+sort(v5) # küçükten büyüğe sıralama yapar.
+sort(v5,decreasing = TRUE) # azalan sırada sıralama yapar.
+
+# diff()
+diff(v5) # vektörde ardışık elemanlar arasındaki farkı bulur.
+diff(na.omit(v5)) # na.omit vektördeki NA gözlemleri temizler
+
+# is.na()
+is.na(v5) # vektördeki elamanların NA olup olmadığını test eder.
+is.nan(v5) # NaN aynı zamanda bir NA'dir.
+
+# which
+which(v5==12) # 6 sayısının posizyonunu gösterir
+which.max(v5) # vektördeki maximum elemanın posizyonunu gösterir
+which.min(v5) # vektördeki minimum elemanın posizyonunu gösterir
+v5[which.min(v5)] # vektördeki minimum elemanı gösterir
+
+# Temel İstatistiksel Fonksiyonlar
+mean(v5) # NA varsa sonuç NA döner
+mean(v5, na.rm = TRUE) # aritmetik ortalama
+median(v5,na.rm = TRUE) # medyan (ortanca)
+sum(v5,na.rm = TRUE) # vektör toplamını verir
+min(v5,na.rm = TRUE) # vektörün minimum değeri
+max(v5,na.rm = TRUE) # vektörün maximum değeri
+sd(v5,na.rm = TRUE) # standart sapma
+var(v5,na.rm = TRUE) # varyans
+```
+
+## Matrisler
+
+-   Matrisler, iki boyutlu yani satır ve sütunları olan atomik vektörlerdir.
+
+-   **matrix()** fonksiyonu ile tanımlanmaktadır.
+
+-   Vektörlerin birleştirlmesi ile de matrisler oluşturulabilir. [**rbind**]{.ul}satır bazlı alt alta birleştirme, [**cbind**]{.ul} ise sütun bazlı yanyana birleştirme yapar. Burada vektörlerin aynı boyutlarda olmasına dikkat edilmesi gerekir.
+
+```{r}
+
+v1 <- c(3,4,6,8,5)
+v2 <- c(4,8,4,7,1)
+v3 <- c(2,2,5,4,6)
+v4 <- c(4,7,5,2,5)
+
+matris <- cbind(v1, v2, v3, v4)
+matris
+
+is.matrix(matris)
+dim(matris)
+
+matrix(nrow = 3, ncol = 3, 1:9)
+matrix(1:9, nrow = 3, ncol = 3, byrow = TRUE) # byrow satırlara göre oluşturur.
+
+mat <- seq(3, 21, by = 2)
+mat
+dim(mat) <- c(5,2)
+mat
+matrix(c(1,2,3,11,22,33), nrow = 2, ncol = 3, byrow = TRUE)
+
+# normal dağılımdan 0 ortamalı, 1 standart sapmalı 16 sayı üret
+MA <- rnorm(16, 0, 1)
+MA <- matrix(MA, nrow = 4, ncol = 4)
+
+# normal dağılımdan 90 ortamalı, 10 standart sapmalı 16 sayı üret
+MB <- rnorm(16, 90, 10)
+MB <- matrix(MB, nrow = 4, ncol = 4)
+
+m <- rbind(MA, MB)
+m
+
+# satır ve sütun isimlendirme
+colnames(m) <- LETTERS[1:4]
+rownames(m) <- tail(LETTERS,8)
+m
+
+#Matris Elemanlarina Erismek
+m[1,1] # 1. satır, 1.sütundak, eleman
+m[4,2] # 4. satır, 2.sütundak, eleman
+m[,2] # 2. sütun elemanları
+m[-3,] # 3. satır hariç tüm elemanlar
+
+# köşegen matris oluşturma
+diag(2,nrow=3)
+diag(1,5) # 5*5 birim matris
+
+# transpose
+t(m)
+
+# matris ile işlemler
+
+m1 <- matrix(1:4,nrow=2)
+m2 <- matrix(5:8,nrow=2)
+
+m1;m2
+m1 + m2 # matris elemanları birebir toplanır
+m1 / m2 # matris elemanları birebir toplanır
+m1 * m2 # matris elemanları birebir çarpılır
+m1 %*% m2 # matris çarpımı
+solve(m2) # matrisin tersi
+
+rowSums(m1) # satır toplamları
+rowMeans(m1) # satır ortalaması
+colSums(m1) # sütun toplamları
+colMeans(m1) # sütun ortalaması
+```
+
+## Listeler
+
+-   Listeler, birbirinden farklı veri tiplerine sahip vektörler, matrisler vb farklı objeleri birarada tutabilen yapılardır.
+
+-   **list()** ile liste oluşturulur.
+
+```{r}
+
+x <- c(3,5,7)
+y <- letters[1:10]
+z <- c(rep(TRUE,3),rep(FALSE,4))
+
+list <- list(x,y,z)
+list
+class(list) # listenin sınıfını verir
+str(list) # listenin yapısını verir
+
+names(list) <- c("numeric","karakter","mantıksal") # liste isimlendirme
+list
+
+list$numeric
+list$karakter
+list$mantıksal
+
+list[[2]]
+
+list$numeric2 <- c(4:10) # listeye eleman ekleme
+list
+
+list$numeric <- NULL # listeden eleman silme
+list
+
+unlist(list) # listeyi vektöre çevirir.
+```
+
+## Dataframe
+
+Veri çerçevesi, her sütunun bir değişkenin değerlerini ve her satırın her sütundan bir değer kümesini içerdiği bir tablo veya iki boyutlu dizi benzeri bir yapıdır. Bir veri çerçevesinin özellikleri şunlardır:
+
+-   Sütun adları boş olmamalıdır.
+
+-   Satır adları benzersiz olmalıdır.
+
+-   Bir veri çerçevesinde saklanan veriler sayısal, faktör veya karakter tipinde olabilir.
+
+-   Her sütun aynı sayıda veri öğesi içermelidir.
+
+**data.frame()** fonksiyonunu uygulayarak bir veri çerçevesi oluşturabiliriz.
+
+```{r}
+
+# data.frame oluşturma
+set.seed(12345)
+
+data <- data.frame(
+  row_num = 1:20,
+  col1 = rnorm(20),
+  col2 = runif(20), # uniform dağılımdam 20 gözlem üret
+  col3 = rbinom(20,size=5,prob = 0.5), # binom dağılımdam 20 gözlem üret
+  col4 = sample(c("TRUE","FALSE"),20,replace = TRUE),
+  col5 = sample(c(rep(c("E","K"),8),rep(NA,4))),
+  stringsAsFactors = TRUE # karakter olanlar faktör olarak değerlendirilsin
+)
+
+class(data)
+head(data) # ilk 6 gözlemi gösterir
+tail(data) # son 6 gözlemi gösterir
+tail(data,10) # son 10 gözlemi gösterir
+
+str(data) # tablonun yapısını gösterir
+summary(data) # tablonun özet istatistiklerini gösterir
+
+# veri çerçevesinden belirli sütun/ları seçmek için $ veya [] kullanılır.
+head(data$col1)
+head(data[,"col1"])
+
+# veri çerçevesinden belirli satır/ları seçmek için [] kullanılır.
+data[1:2,] 
+
+# 3. and 5. satır ile 2. ve 4. kolon
+data[c(3,5),c(2,4)]
+
+# koşula göre veriler seçilebilir
+data$row_num > 12 # TRUE veya FALSE döner
+data[data$row_num > 12,] # koşula göre tablonu değerleri döner
+
+# subset ile tablo filtrelenebilir.
+subset(data, 
+       row_num >= 10 & col4 == 'TRUE',
+       select = c(row_num, col1, col2,col4))
+
+# names veya colnames ile sütun isimleri elde edilir.
+names(data)
+colnames(data)
+
+# vektör ile sütun seçimi
+cols <- c("col1","col2","col5")
+head(data[cols])
+
+# sütun silme
+data$col1 <- NULL
+head(data)
+
+# sütun ekleme
+data$col1 <- rnorm(20)
+head(data)
+
+# sütunları sıralama
+head(data[c("row_num","col1","col2","col3","col4","col5")])
+
+# sıralama
+head(data[order(data$col3),]) # artan
+head(data[order(-data$row_num),]) # azalan
+head(data[order(data$col3,-data$row_num),])
+
+# kayıp gözlemler (missing values)
+tail(is.na(data))
+tail(is.na(data$col5))
+data[is.na(data$col5),]
+data[!is.na(data$col5),]
+
+rowSums(is.na(data)) # satılardaki toplam kayıp gözlem sayısı
+colSums(is.na(data)) # sütunlardaki toplam kayıp gözlem sayısı
+sum(is.na(data)) # tablodaki toplam kayıp gözlem sayısı
+
+complete.cases(data) # satırlarda eksik gözlemlerin durumu
+data[complete.cases(data),]
+data[!complete.cases(data),]
+
+na.omit(data) # NA olan satırları siler.
+```
+
+## Faktörler
+
+-   Faktörler, verileri kategorilere ayırmak ve düzeyler halinde depolamak için kullanılan veri nesneleridir. Hem karakter hem de tam sayıları depolayabilirler.
+
+-   "Erkek, "Kadın" ve Doğru, Yanlış vb. gibi istatistiksel modelleme için veri analizinde faydalıdırlar.
+
+-   Faktörler, girdi olarak bir vektör alınarak faktör () işlevi kullanılarak oluşturulur.
+
+```{r}
+
+data <- c(rep("erkek",5),rep("kadın",7))
+print(data)
+is.factor(data)
+
+# veriyi faktöre çevirme
+factor_data <- factor(data)
+
+print(factor_data)
+print(is.factor(factor_data))
+
+as.numeric(factor_data)
+
+# data frame için vektörler oluşturalım
+boy <- c(132,151,162,139,166,147,122)
+kilo <- c(48,49,66,53,67,52,40)
+cinsiyet <- c("erkek","erkek","kadın","kadın","erkek","kadın","erkek")
+
+# data frame
+df <- data.frame(boy,kilo,cinsiyet)
+str(df)
+df$cinsiyet <- factor(cinsiyet)
+str(df)
+
+print(is.factor(df$cinsiyet))
+
+# cinsiyet kolononun seviyeleri
+print(df$cinsiyet)
+
+# seviyelerin sırası değiştirilebilir.
+
+df2 <- c(rep("düşük",4),rep("orta",5),rep("yüksek",2))
+
+factor_df2 <- factor(df2)
+print(factor_df2)
+
+order_df2 <- factor(factor_df2,levels = c("yüksek","orta","düşük"))
+print(order_df2)
+
+# ordered=TRUE ile seviyelerin sıralı olduğu ifade edilir
+order_df2 <- factor(factor_df2,levels = c("yüksek","orta","düşük"),ordered = TRUE)
+print(order_df2)
+
+# Faktör seviyesi üretme
+
+# gl() fonksiyonunu kullanarak faktör seviyeleri üretebiliriz. 
+# Girdi olarak kaç seviye ve her seviyeden kaç tane sayı oalcağı belirtilir.
+
+faktor <- gl(n=3, k=4, labels = c("level1", "level2","level3"),ordered = TRUE)
+print(faktor)
+
+```
+
+# Fonksiyonlar
+
+Fonksiyonlar çoğu programlama dillerinin çok önemli bir özelliğidir. Yalnızca mevcut fonksiyonları kullanmak yerine, belirli işleri yapmak için kendimize ait fonksiyonlar yazabiliriz. Ama neden fonksiyon yazmalıyız?
+
+-   Tekrarlardan kaçınmanızı sağlar.
+
+-   Yeniden kullanımı kolaylaştırır.
+
+-   Karmaşık komut dosyalarından kaçınmanıza yardımcı olur.
+
+-   Hata ayıklamayı kolaylaştırır.
+
+Bir fonksiyonun temel kod yapısı aşağıdak gibidir:
+
+    function_name <- function(arg_1, arg_2, ...) {
+       Function body
+    }
+
+```{r}
+
+# kare alma fonksiyonu
+f_kare <- function(x) {
+   x^2
+ }
+
+f_kare(15)
+f_kare(x=20)
+
+# standart sapma fonksiyonu
+
+# Standart sapmanın hesaplanması
+# sqrt(sum((x - mean(x))^2) / (length(x) - 1))
+
+set.seed(123) # Pseudo-randomization
+x1 <- rnorm(1000, 0, 1.0)
+x2 <- rnorm(1000, 0, 1.5)
+x3 <- rnorm(1000, 0, 5.0)
+
+# her serinin ayrı ayrı standart sapmasının hesaplanması
+sd1 <- sqrt(sum((x1 - mean(x1))^2) / (length(x1) - 1))
+sd2 <- sqrt(sum((x2 - mean(x2))^2) / (length(x2) - 1))
+sd3 <- sqrt(sum((x3 - mean(x1))^2) / (length(x3) - 1))
+c(sd1 = sd1, sd2 = sd2, sd3 = sd3)
+
+# fonksiyonu oluşturalım
+f_sd <- function(x) {
+  result <- sqrt(sum((x - mean(x))^2) / (length(x) - 1))
+  return(result)
+}
+
+sd1 <- f_sd(x1)
+sd2 <- f_sd(x2)
+sd3 <- f_sd(x3)
+c(sd1 = sd1, sd2 = sd2, sd3 = sd3)
+
+# standartlaştırma fonksiyonu
+f_std <- function(x) {
+m <- mean(x)
+s <- sd(x)
+(x - m) / s
+}
+
+x4 <- rnorm(10,5,10)
+x4
+f_std(x4)
+```
+
+# Kontrol İfadeleri
+
+Kontrol ifadeleri ve döngüler R içerisinde sıklıkla kullanılan yapılardır. Belirli şartlara bağlı olan ya da tekrarlı işlemler için oldukça faydalıdırlar. R programlama dilinde en çok kullanılan **if-else, for, while, next, break** gibi kontrol döngüleridir.
+
+## if-else
+
+Bu kombinasyon R'de en sık kullanılan kontrol yapılarındandır. Bu yapıda, bir koşulu test edebilir ve doğru veya yanlış olmasına bağlı olarak ona göre hareket edebilirsiniz. if-else kombinasyonlarında aşağıdaki yapılar kullanılmaktadır.
+
+    if (condition){
+    #do something if condition is true
+    }
+
+
+    if (condition){
+    #do something if condition is true
+    }
+    else{
+    #do someting if condition is not true
+    }
+
+    if (condition){
+
+    #do something if condition is true
+
+    } else if (condition2) {
+
+    #do someting if condition2 is true
+
+    } else {
+
+    #do something if neither condition 1 nor condition 2 is true
+
+    }
+
+```{r}
+
+x <- 8
+
+if (x < 10) {
+    print("x 10'dan küçüktür")
+} else {
+    print("x 10'dan büyüktür ya da 10'a eşittir")
+}
+
+# ifelse 
+# ifelse(condition, do_if_true, do_if_false)
+df <- data.frame(value = 1:9)
+df$group <- ifelse(df$value <= 3,1,ifelse(df$value > 3 & df$value <= 6,2,3))
+df
+
+```
+
+## for-while-repeat-next-break
+
+-   **for** döngüleri bir tekrarlayıcı değişken alır ve ona bir diziden veya vektörden ardışık değerler atar. En yaygın olarak bir nesnenin öğeleri üzerinde tekrarlayan işlem yapmak için kullanılır.
+
+-   **while** döngüleri bir şartı test ederek başlar. Eğer denenecek şart doğru ise istenilen komutlar yerine getirilir. Döngü şartın doğru olmadığı ana kadar devam eder.
+
+-   **repeat** sonsuz bir döngü oluşturur. Döngüden çıkmak için **break** kullanılır.
+
+-   **next** ifadesi ile bir döngüdeki belirli tekrarlar atlanabilir.
+
+```{r}
+
+for (i in 1:5) {
+    print(i)
+}
+
+v <- LETTERS[1:4]
+for ( i in v) {
+   print(i)
+}
+
+# dataframe içerisinde for
+for (i in 1:nrow(df)){
+  
+  df[i,"multiply"] <- df[i,"value"] * df[i,"group"]
+}
+
+# i yerine farklı ifade de kullanılabilir
+(x <- data.frame(age=c(28, 35, 13, 13),
+                height=c(1.62, 1.53, 1.83, 1.71),
+                weight=c(65, 59, 72, 83)))
+
+for (var in colnames(x)) {
+    m <- mean(x[, var])
+    print(paste("Average", var, "is", m))
+}
+
+# while
+
+x <- 0
+
+while (x^2 < 20) {
+  print(x)      # Print x
+  x <- x + 1    # x'i bir artır
+}
+
+# repeat
+
+x <- 0
+
+repeat {
+    if (x^2 > 20) break     # bu koşul sağlandığında döngüyü bitir
+    print(x)               
+    x <- x + 1              # x'i bir artır
+}
+
+# next
+
+for(i in 1:7) {
+if (i==4) next # i=4 olduğunda atla
+print(1:i)
+}
+
+
+(s <- seq(1,10,1))
+
+for (i in s) {
+    if (i%%2 == 1) { # mod
+        next
+    } else {
+        print(i)
+    }
+}
+
+# döngü içinde döngü
+
+(mat <- matrix(nrow=4, ncol=4))
+
+nr <-  nrow(mat)
+nc <-  ncol(mat)
+
+# matrisin içini dolduralım
+for(i in 1:nr) {
+  for (j in 1:nc) {
+    mat[i, j] = i * j
+  }
+}
+
+mat
+```
+
+# Tarih ve Zaman İşlemleri
+
+Tarihler, Date sınıfı tarafından temsil edilir ve **`as.Date()`** işlevi kullanılarak bir karakter dizesinden oluşturulabilir. Bu, R'de bir Date nesnesi elde etmenin yaygın bir yoludur. Date sınıfı varsayılan olarak tarihleri 1 Ocak 1970'den bu yana geçen günlerin sayısı olarak temsil eder. **`as.Date()`** işlevinin kullanılması bir karakter dizesinden Date nesneleri oluşturmamıza olanak tanır. Varsayılan biçim "YYYY/m/d" veya "YYYY-m-d" şeklindedir.
+
+```{r}
+
+Sys.Date()
+class(Sys.Date())
+
+myDate <- as.Date("2022-01-04")
+
+class(myDate)
+
+# format argümanı ile tarih formatı tanımlanabilir
+as.Date("12/31/2021", format = "%m/%d/%Y")
+
+
+# year
+format(myDate, "%Y")
+as.numeric(format(myDate, "%Y"))
+
+# weekday
+weekdays(myDate)
+
+# month
+months(myDate)
+
+# quarters
+quarters(myDate)
+
+# create date sequence 
+date_week <- seq(from = as.Date("2021-10-1"), 
+    to = as.Date("2021/12/31"), 
+    by = "1 week")
+
+date_week
+
+date_day <- seq(from = as.Date("2021-12-15"), 
+    to = as.Date("2021/12/31"), 
+    by = "day")
+
+date_day
+
+date_month <- seq(from = as.Date("2021-1-15"), 
+    to = as.Date("2021/12/31"), 
+    by = "month")
+
+date_month
+```
+
+Temel R **POSIXt** sınıfları, saat dilimlerini kontrol ederek tarih ve saatlere izin verir. R'de kullanılabilen iki POSIXt alt sınıfı vardır: **POSIXct ve POSIXlt.** POSIXct sınıfı, GMT (UTC -- evrensel saat, koordineli) 1970-01-01 gece yarısından bu yana işaretli saniye sayısı olarak tarih-saat değerlerini temsil eder. POSIXlt sınıfı, tarih-saat değerlerini, saniye (sn), dakika (dk), saat (saat), ayın günü (mday), ay (mon), yıl (yıl), gün için öğeleri içeren adlandırılmış bir liste olarak temsil eder.
+
+tarih-saatleri temsil eden en yaygın format kodları seti, `strptime()` işlevinin yardım dosyasında listelenmiştir (konsolunuza help(`strptime`) yazın).
+
+```{r}
+
+Sys.time()
+class(Sys.time())
+
+myDateTime <- "2021-12-11 22:10:35"
+myDateTime
+class(myDateTime)
+
+as.POSIXct(myDateTime)
+class(as.POSIXct(myDateTime))
+
+
+Sys.timezone()
+
+as.POSIXct("30-12-2021 23:25", format = "%d-%m-%Y %H:%M")
+
+myDateTime.POSIXlt <- as.POSIXlt(myDateTime)
+
+# seconds
+myDateTime.POSIXlt$sec
+
+# minutes
+myDateTime.POSIXlt$min
+
+# hours
+myDateTime.POSIXlt$hour
+
+# POSIXt nesneleri tarih formatına dönüştürülebilir.
+as.Date(myDateTime.POSIXlt)
+```
+
+**Lubridate** paketi, R'de tarih ve saatlerle çalışmayı kolaylaştıran çeşitli işlevler sağlar. Lubridate paketi, `ymd()`, `ymd_hms()`,`dmy()`, `dmy_hms()`,`mdy()`gibi işlevler sağlayarak tarih-zamanların ayrıştırılmasını kolay ve hızlı hale getirir.
+
+```{r}
+
+library(lubridate)
+# convert a number into a data object
+ymd(20211215) # year-month-date
+
+ymd_hm(202112121533) # year-month-date-hour-minute
+
+mdy("Aralık 13, 2021") # month date year
+mdy("12 18, 2021") # month date year
+
+dmy(241221) # day-month-year
+dmy(24122021) # day-month-year
+
+today <- Sys.time()
+today
+
+year(today) # year
+
+month(today) # month
+month(today, label = TRUE) # labeled month
+month(today,label = TRUE, abbr = FALSE) # labeled month
+
+week(today) # week
+mday(today) # day
+wday(today) # weekday
+wday(today, label = TRUE) # labeled weekday
+wday(today, label = TRUE, abbr = FALSE) # labeled weekday
+yday(today) # day of the year
+hour(today) # hour
+minute(today) # minute
+second(today) # second
+```
+
+Yukarıda listelenen çeşitli işlevlere ek olarak, **`zoo`** paketindeki **`as.yearmon()`** ve **`as.yearqtr()`** işlevleri, düzenli aralıklarla aylık ve üç aylık verilerle çalışırken uygundur.
+
+```{r}
+
+library(zoo)
+as.yearmon(today)
+
+format(as.yearmon(today), "%B %Y")
+format(as.yearmon(today), "%Y-%m")
+as.yearqtr(today)
+
+# dataframe içerisinde tarih kullanmak
+df <-
+  data.frame(date = c(
+    "2010-02-01",
+    "20110522",
+    "2009/04/30",
+    "2012 11 05",
+    "11-9-2015"
+  ))
+
+df$date2 <- as.Date(parse_date_time(df$date, c("ymd", "mdy")))            
+df
+```
+
+# Metin İşlemleri
+
+R'de bir çift tek tırnak veya çift tırnak içine yazılan herhangi bir değer, bir karakter olarak kabul edilir. Karakter yapısına sahip olan verilerin analizi özellikle metin madenciliği konusunda kullanışlıdır. Karakter nesneleri üzerinde çalışmak için kullanılabilecek birçok fonksiyon vardır.
+
+```{r}
+
+# as.character
+as.character(3.14)
+class(as.character(3.14))
+
+# paste and paste0 karakter verilerini birleştirir
+
+first <- "Fatih"
+last <- "Tüzen"
+paste(first,last) # default olarak arada boşluk bırakır
+paste0(first,last) # default olarak arada boşluk yoktur
+paste("R","Python","SPSS",sep = "-")
+
+# grep fonksiyonu metin vektörünün içinde belirli bir deseni arar
+
+x <- c("R programı","program","istatistik","programlama dili","bilgisayar","matematik")
+grep("program",x)
+grep("^ist",x) # ist ile başlayan ifdelerin olduğu yerler
+grep("tik$",x) # tik ile biten ifdelerin olduğu yerler
+
+# grepl TRUE-FALSE olarak sonuç döndürür
+grepl("tik$",x) # tik ile biten ifdelerin olduğu yerler
+x[grep("tik$",x)] # tik ile biten ifdelerin olduğu yerler
+x[grepl("tik$",x)] # tik ile biten ifdelerin olduğu yerler
+
+# nchar karakter uzunluğunu verir
+nchar(x)
+nchar("R Programlama") # boşluklar da sayılır!
+
+# tolower ve toupper 
+toupper("program") # karakteri büyük harf yapar
+tolower(c("SPSS","R","PYTHON")) # karakteri küçük harf yapar
+
+# substr ve substring ile karakter parçalama yapılır
+substr("123456789",start = 3, stop = 6)
+substring("123456789", first =3, last = 6)
+
+x <- "R Programlama"
+substr(x,nchar(x)-3,nchar(x)) # son 4 karakteri getir
+
+# strsplit karakteri bölme işini yapar
+strsplit("Ankara;İstanbul;İzmir",split = ";")
+
+
+```
+
+# Apply Ailesi
+
+**`Apply()`** ailesi, matrislerden, dizilerden, listelerden ve veri çerçevelerinden tekrarlayan bir şekilde veri dilimlerini işlemek için fonksiyonlarla doldurulur. Bu fonksiyonlar sayesinde döngü yapılarının kullanılmasından kaçınır. Bir girdi listesi, matris veya dizi üzerinde hareket ederler ve bir veya birkaç isteğe bağlı argümanla adlandırılmış bir fonksiyon uygularlar.
+
+-   `apply()`: bir dizinin ya da matrisin satır ya da sütunlarına fonksiyon uygular.
+
+-   `lapply()`: liste üzerindeki her elemana fonksiyon uygular.
+
+-   `sapply()`: lapply fonksiyonu ile aynıdır ancak çıktısı matris ya da veri çerçevesidir.
+
+-   `mapply()`: lapply fonksiyonunun çoklu versiyonudur.
+
+-   `tapply()`: faktör ya da grup düzeyinde fonkyion uygular.
+
+```{r}
+
+# apply
+x <-matrix(rnorm(30), nrow=5, ncol=6)
+x
+
+apply(x, 2 ,sum) # sütunlar üzerinde işlem yapar
+apply(x, 1 ,sum) # satırlar üzerinde işlem yapar
+
+apply(x, 2 ,sd)
+apply(x, 1 ,mean)
+
+mat <- matrix(c(1:12),nrow=4)
+mat
+
+apply(mat,2,function(x) x^2) # gözlemlerin karesi alınır
+apply(mat,2, quantile,probs=c(0.25,0.5,0.75)) # extra argüman eklenebilir
+
+
+# lapply
+
+a <-matrix(1:9, 3,3)
+b <-matrix(4:15, 4,3)
+c <-matrix(8:10, 3,2)
+mylist<-list(a,b,c)
+mylist
+
+lapply(mylist,mean)
+lapply(mylist,sum)
+
+lapply(mylist, function(x) x[,1]) # listedeki her matrisin ilk kolonunu çıkar
+
+mylist2 <- list(a = 1:4, b = rnorm(10), c = rnorm(20, 1), d = rnorm(100, 5))
+mylist2
+lapply(mylist2, mean)
+
+# sapply
+
+head(cars)
+
+lapply(cars,sum)
+sapply(cars,sum)
+sapply(cars,median)
+sapply(cars,mean)
+
+# mapply
+
+l1 <- list(a=c(1:5),b=c(6:10))
+l2 <- list(c=c(11:15),d=c(16:20))
+
+mapply(sum,l1$a,l1$b,l2$c,l2$d) # gözlemlerin toplamı
+mapply(prod,l1$a,l1$b,l2$c,l2$d) # gözlemlerin çarpımı
+
+# tapply
+
+df <- data.frame(x =round(runif(15,min=1,max=10)),
+                 group=sample(c(1:3),15,replace = TRUE))
+df
+
+tapply(df$x,df$group, FUN = mean)
+tapply(df$x,df$group, FUN = sum)
+tapply(df$x,df$group, FUN = length)
+tapply(df$x,df$group, FUN = range)
+```
+
+# Verilerin İçe ve Dışa Aktarılması
+
+Temel anlamda R içerisinde excel ortamından (virgül ya da noktalı virgül ile ayrılmış) veri aktarımı (import) için `read.table, read.csv, read.csv2` fonksiyonları kullanılmaktadır. Excel'den veri aktarımı için `readxl` veya `openxlsx`paketi kullanılabilir. Verilerin dışa aktarılması için ise `write.csv, write.table` fonksiyonları kullanılabilir.
+
+```{r}
+
+# delimiter/separator , ise
+mtcars_csv <- read.csv("datasets/mtcars_csv.csv")
+str(mtcars_csv)
+# stringsAsFactors karakter kolonları faktöre çevirir
+mtcars_csv <- read.csv("datasets/mtcars_csv.csv",
+                       stringsAsFactors = TRUE)
+str(mtcars_csv)
+
+# delimiter/separator ; ise
+
+mtcars_csv2 <- read.csv2("datasets/mtcars_csv2.csv")
+str(mtcars_csv2)
+
+# read.table
+
+mtcars_csv <- read.table("datasets/mtcars_csv.csv",
+                         sep = ",",
+                         header = TRUE)
+
+mtcars_csv2 <- read.table("datasets/mtcars_csv2.csv",
+                          sep = ";",
+                          header = TRUE)
+
+# txt uzantılı dosyalar
+
+mtcars_txt <- read.table("datasets/mtcars_txt.txt",
+                          sep = ";",
+                          header = TRUE)
+
+# excel dosyaları için
+library(readxl)
+mtcars_excel <- read_excel("datasets/mtcars_excel.xlsx",
+                           sheet = "mtcars")
+str(mtcars_excel)
+
+
+mtcars_excel2 <- read_excel("datasets/mtcars_excel.xlsx",
+                            sheet = "mtcars2")
+str(mtcars_excel2) # tablo 2. satırdan başlıyor o yüzden tablo başlıkları hatalı
+
+# istenilen satırı atlayarak istenilen sheet adı için,
+mtcars_excel2 <- read_excel("datasets/mtcars_excel.xlsx",
+                            sheet = "mtcars2",
+                            skip = 1)
+str(mtcars_excel2)
+
+# export
+
+write.csv(mtcars_csv,"write_mtcars.csv",
+          row.names = FALSE)
+
+write.table(mtcars_csv,"write_mtcars.csv",
+            row.names = FALSE,
+            sep = ";")
+
+openxlsx::write.xlsx(mtcars_csv,"write_mtcars.xlsx")
+
+```
+
+R içerisinde yer alan hazır veri setlerine erişim için `data()` fonksiyonu kulanılır. Bu fonksyion R ortamınızdaki aktif kutuphanelerin icindeki veri setlerini listeler. Tüm veri setlerine erişim için `data(package = .packages(all.available =  TRUE))` kodu çalıştırılır.
+
+Dosyaları Excel gibi yazılımlarla açmak istiyorsanız, txt, csv veya Excel dosya formatlarında veri yazmak en iyi çözümdür. Ancak bu çözüm, sütun veri türleri (sayısal, karakter veya faktör) gibi veri yapılarını korumaz. Bunun için veriler R data formatında yazılmalıdır. Bu amaçla R ortamındaki verilerinizi tekil olarak saklamak ya da içeri aktarmak için **`saveRDS()`** ve **`readRDS()`** fonksiyonları kullanılır. Bu fonksiyonlar ile **`rds`(**serialized *R* data**)** uzantılı R formatındaki dosyalar kullanılır.
+
+```{r}
+
+# Tek bir dosyayı rds formatında saklamak
+saveRDS(mtcars, "datasets/mtcars.rds")
+
+# rds uzantılı dosyayı yüklemek
+my_data <- readRDS("datasets/mtcars.rds")
+
+```
+
+Eğer birden fazla dosya aynı anda saklanmak ya da içeri aktarılmak isteniyorsa **`save`** ve **`load`** fonksiyonları kullanılır. Bu fonksiyonlar ile **`RData`** uzantılı dosyalar elde edilir. Ayrıca **`rda`(Rdata)** uzantılı dosyalar da bir veya daha fazla farklı R nesnesi alabilir.
+
+```{r}
+
+# RData formatında tek dosya saklamak
+save(my_data, file = "datasets/my_data.RData")
+
+# RData formatında birden fazla dosya saklamak
+save(my_data, mtcars_csv, file = "datasets/data.RData")
+
+# RData formatındaki verileri yüklemek
+load("datasets/data.RData")
+
+```
+
+RStudio'yu kapattığınızda, çalışma alanınızı kaydetmek isteyip istemediğinizi sorar. Evet derseniz, RStudio'yu bir sonraki başlatışınızda o çalışma alanı yüklenecektir. Bu kaydedilen dosya da .RData olarak adlandırılacaktır. Çalışma alanınızı kaydetmek için dosya adını belirtmek de mümkündür. Bunun için **`save.image()`** fonksiyonu kullanılır.
+
+```{r}
+
+# workspace saklamak
+save.image(file = "datasets/my_work_space.RData")
+
+# workspace yüklemek
+load("datasets/my_work_space.RData")
+```
+
+Ayrıca aşağıdaki programlar ile üretilmiş veriler için **`haven`** ya da **`foreign`** paketleri kullanılabilir.
+
+-   **SAS (**sas7bdat, sas7bcat)
+
+-   **SPSS** (sav, por)
+
+-   **STATA** (dta)

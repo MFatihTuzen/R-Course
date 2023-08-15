@@ -1,0 +1,507 @@
+---
+title: \vspace{2cm} \begin{Huge} \textbf {R ile Veri Ön İşleme \\ ve \\ Doğrusal Regresyon} \end{Huge} \vspace{0.5cm}
+author: \Large Muhammed Fatih TÜZEN
+date: "13 01 2022"
+header-includes:
+ - \usepackage{fancyhdr}
+ - \pagestyle{fancy}
+ - \fancyhead[LO,LE]{Muhammed Fatih TÜZEN}
+ - \usepackage{titling}
+ - \pretitle{\begin{center}
+  \includegraphics[width=4.5in,height=5.5in]{images/regresyon.jpeg}\Huge\\}
+ - \posttitle{\end{center}}
+output: 
+ pdf_document : 
+   toc_depth: 2
+   number_sections: yes
+   latex_engine: xelatex
+   highlight: tango
+toc-title: "İÇİNDEKİLER"
+fontsize: 12pt
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+options(scipen=999)
+```
+
+\centering
+
+\raggedright
+
+\newpage
+
+\renewcommand{\contentsname}{İÇİNDEKİLER}
+
+\tableofcontents
+
+\newpage
+
+# Veri Ön İşleme
+
+Veri ön işleme; istatistiksel modeller kurulmadan önce veri seti üzerinde yapılan bir takım düzeltme, eksik veriyi tamamlama, tekrarlanan verileri kaldırma, dönüştürme, bütünleştirme, temizleme, normalleştirme, boyut indirgeme vb. işlemlerdir. Bu aşamada ister istemez veri üzerinde bilgi keşfi yapılmış olur. Veri önişleme istatistiksel bir modelleme sürecinin büyük kısmını oluşturmaktadır. Kesin bir rakam olmamakla birlikte modelleme sürecinin yarısından fazlasının bu aşamada harcandığını ifade edebiliriz.
+
+Bu dokümanda veri ön işleme konularında eksik veriler (missing values), aykırı değerler (outliers) ve veri normalleştirme işlemleri R uygulamları ile anlatılacaktır.
+
+## Eksik Veriler
+
+Eksik veriler (kayıp gözlem), veri toplamada kaçınılmaz bir durumdur ve üzerinde dikkatle durulmalıdır. Sistematik bir kayıp gözlem durumu yoksa ortada ciddi bir sorun yoktur. Ama rastgele olmayan bir hata varsa tüm kitleye dair yanlılık olacağı için bu durum göz ardı edilemez.
+
+```{r}
+
+df <- data.frame(weight=c(rnorm(15,70,10),rep(NA,5)),
+height=c(rnorm(17,165,20),rep(NA,3)))
+
+set.seed(12345)
+rows <- sample(nrow(df))
+df2 <- df[rows, ]
+
+# eksik verilerin sorgulanması
+
+is.na(df2) # sorgulanma
+which(is.na(df2)) #konum
+sum(is.na(df2)) # toplam eksik veri sayısı
+colSums(is.na(df2)) # değişken düzeyinde eksik veri sayısı
+
+df2[!complete.cases(df2), ] #en az bir tane eksik olan satırlar
+df2[complete.cases(df2), ]$weight
+
+```
+
+### Eksik Verileri Silme
+
+```{r}
+
+# eksik veriden tamamen kurtulma
+na.omit(df2)
+complete.cases(df2)
+df2[complete.cases(df2), ] # dolu olanlar satırlar
+df2[complete.cases(df2), ]$weight # değişken bazında dolu olan satırlar
+
+```
+
+### İmputasyon
+
+```{r}
+
+# eksik verilere basit değer atama
+df2$weight2 <- ifelse(is.na(df2$weight),mean(df2$weight, na.rm = TRUE),df2$weight)
+sapply(df2, function(x) ifelse(is.na(x), mean(x, na.rm = TRUE), x ))
+
+
+library(zoo)
+sapply(df2, function(x) ifelse(is.na(x), na.locf(x), x )) # carry forward
+sapply(df2, function(x) ifelse(is.na(x), na.locf(x,fromlast=TRUE), x ))
+sapply(df2, function(x) ifelse(is.na(x), na.approx(x), x )) # linear interpolation
+sapply(df2, function(x) ifelse(is.na(x), na.approx(x), x )) # cubic interpolation
+
+# KNN (k-nearest neighbor) ile Değer Atama
+
+library(dplyr)
+library(DMwR2)
+# airquality verisi
+df_air <- as_tibble(airquality)
+df_air
+anyNA(df_air)
+
+# airquality verisindeki Wind değişkeninin bazı değerlerini NA yapalım
+set.seed(1234)
+row_num <- sample(1:nrow(airquality),5)
+row_num # bu satırdaki değerlere NA atanacak
+airquality_2 <- airquality
+airquality_2[row_num,"Wind"] <- NA
+airquality_2[row_num,"Wind"]
+head(airquality_2,20)
+
+# k parametresi, verilen bir noktaya en yakın komşuların sayısıdır. 
+# Örneğin: k=5 olsun. Bu durumda mesafeye (öklit) göre en yakın 5 komşu belirlenir
+# ve mesafenin ağırlıklı ortalaması hesaplanır.
+# ağırlıklandırma, her komşuya 1 / d ağırlığının verilmesini içerir.
+# burada d komşuya olan uzaklıktır.
+knn_df_air <- knnImputation(airquality_2, k = 5) # k komşu sayısı
+
+result <- data.frame(row=row_num,
+                     orig=airquality[row_num,"Wind"],
+                     knn=knn_df_air[row_num,"Wind"])
+result
+mean(result$orig-result$knn)
+```
+
+Eksik verilerin analiz edilmesi ve imputasyon konusunda R içerisinde çeşitli kütühaneler bulunmaktadır. Bunlardan en çok bilinenleri **`mice, VIM, missForest, imputation, naniar, mi, Amelia`** paketleridir. Ayrıca [**Sosyal Bilimler konuları içerisindeki eksik veriler bölümünden de**](https://cran.r-project.org/web/views/SocialSciences.html) yararlanılabilir.
+
+## Aykırı Değer Analizi
+
+Aykırı değer, diğer gözlemlerden uzak olan, yani diğer veri noktalarından önemli ölçüde farklı olan bir veri noktası olan bir değer veya gözlemdir. Bu dokümanda, minimum ve maksimum, histogram, kutu grafiği, (box-plot), yüzdelikler ve Z-Skoru ile aykırı değer analizi anlatılacaktır.
+
+### Minumum ve Maximum
+
+```{r}
+
+library(ggplot2)
+
+# mpg verisindeki hwy değişkeni üzerinden inceleyelim
+summary(mpg$hwy)
+min(mpg$hwy)
+max(mpg$hwy)
+
+```
+
+### Histogram
+
+```{r}
+
+ggplot(mpg) +
+  aes(x = hwy) +
+  geom_histogram(bins = 20, fill = "blue") +
+  theme_minimal()
+# grafiğiin sağ tarafında kalan gözlemler şüpheli görünüyor.
+```
+
+### Boxplot
+
+Bir boxplot grafiği, beş konum özetini (minimum, ortanca, birinci ve üçüncü çeyrekler ve maksimum) ve çeyrekler arası aralık (IQR) kriteri kullanılarak şüpheli bir aykırı değer olarak sınıflandırılan herhangi bir gözlemi görüntüleyerek nicel bir değişkeni görselleştirmeye yardımcı olur.
+
+$I = [Q_1-1.5 * IQR ; Q_3 + 1.5 * IQR]$
+
+IQR ise üçüncü ve birinci çeyrek arasındaki farktır. R içerisindeki **`IQR()`** fonksiyonu bu amaçla kullanılabilir.
+
+```{r}
+
+ggplot(mpg) +
+  aes(x = "", y = hwy) +
+  geom_boxplot(fill = "blue") +
+  theme_minimal()
+
+# outlier değrlerine erişim
+boxplot.stats(mpg$hwy)$out
+
+# outier olarak görülen değerlerin konumları
+hwy_out <- boxplot.stats(mpg$hwy)$out
+hwy_out_sira <- which(mpg$hwy %in% c(hwy_out))
+hwy_out_sira
+
+# outlier olarak görülen satırlar
+mpg[hwy_out_sira, ]
+```
+
+### Yüzdelikler (Percentiles)
+
+Bu aykırı değer tespiti yöntemi, yüzdelik dilimlere dayalıdır. Yüzdelikler yöntemiyle, 2,5 ve 97,5 yüzdelik dilimlerin oluşturduğu aralığın dışında kalan tüm gözlemler potansiyel aykırı değerler olarak kabul edilecektir. Aralığı oluşturmak için 1 ve 99 veya 5 ve 95 yüzdelikler gibi diğer yüzdelikler de düşünülebilir.
+
+```{r}
+
+alt_sinir <- quantile(mpg$hwy, 0.025)
+alt_sinir
+ust_sinir <- quantile(mpg$hwy, 0.975)
+ust_sinir
+
+# Bu yönteme göre, 14'ün altındaki ve 35.175'in üzerindeki tüm gözlemler,
+# potansiyel aykırı değerler olarak kabul edilecektir.
+
+outlier_sira <- which(mpg$hwy < alt_sinir | mpg$hwy > ust_sinir)
+outlier_sira
+# Bu yönteme göre 11 adet outlier bulunmuştur.
+mpg[outlier_sira,]
+
+# Sınırları biraz daha küçültelim
+alt_sinir <- quantile(mpg$hwy, 0.01)
+ust_sinir <- quantile(mpg$hwy, 0.99)
+
+outlier_sira <- which(mpg$hwy < alt_sinir | mpg$hwy > ust_sinir)
+
+mpg[outlier_sira, ]
+# Buna göre IQR ile elde edildiği gibi 3 adet outlier bulundu.
+
+```
+
+### Z-Skor Yöntemi
+
+Aykırı değerlerin tespitinde ortalama ve standart sapmanın kulllanıldığı en bilinen yöntemlerdendir ve aşağıdaki şekilde hesaplanır.
+
+$Z_i = \frac{(X_i -\mu)}{\sigma}$
+
+![](images/sigma.png){width="673"}
+
+```{r}
+
+std_z <- function(x){
+  
+  z=(x-mean(x))/sd(x)
+  return(z)
+}
+
+mpg$hwy_std <- std_z(mpg$hwy)
+mpg[,c("hwy","hwy_std")]
+
+# -3 ve +3 sapma dışında kalanları aykırı değer olarak kabul ediyoruz.
+outliers_zskor <- which(mpg$hwy_std < -3 | mpg$hwy_std > +3)
+outliers_zskor
+mpg[outliers_zskor,c() ]
+
+# bu yönteme göre 2 adet aykırı değer bulunmuştur.
+```
+
+## Veri Normalleştirme
+
+Değişkenler farklı ölçeklerde ölçüldüğünde, genellikle analize eşit katkıda bulunmazlar. Örneğin, bir değişkenin değerleri 0 ile 100.000 arasında ve başka bir değişkenin değerleri 0 ile 100 arasında değişiyorsa, daha büyük aralığa sahip değişkene analizde daha büyük bir ağırlık verilecektir. Değişkenleri normalleştirerek, her bir değişkenin analize eşit katkı sağladığından emin olabiliriz. Değişkenleri normalleştirmek için (veya ölçeklendirmek) genellikle min-max ya da z dönüşümü yöntemleri kullanılır.
+
+```{r,fig.height = 6, fig.width = 8}
+
+# min-max dönüşümleri
+
+# 0 ile 1 arasi dönüşüm
+std_0_1 <- function(x) {
+  (x - min(x)) / (max(x) - min(x))
+}
+
+#-1 ile +1 arası dönüşüm 
+std_1_1 <- function(x) {
+  ((x - mean(x)) / max(abs(x - mean(x))))
+}
+
+# a ile b arası dönüşüm 
+std_min_max <- function(x,a,b) {
+  # a min değer
+  # b max değer
+  (a + ((x - min(x)) * (b - a)) / (max(x) - min(x)))
+}
+
+set.seed(12345)
+dat <- data.frame(x = rnorm(20, 10, 3),
+                  y = rnorm(20, 30, 8),
+                  z = rnorm(20, 25, 5))
+dat
+
+summary(dat)
+apply(dat, 2, std_0_1)
+
+library(dplyr)
+
+dat %>% mutate_all(std_0_1) %>% summary()
+dat %>% mutate_all(std_1_1) %>% summary()
+dat %>% mutate_all(std_min_max, a = -2, b = 2) %>% summary()
+dat %>% mutate_all(std_z) %>% summary()
+
+par(mfrow=c(2,1))
+hist(dat$x,main="original data",col="blue")
+hist(std_0_1(dat$x),main="normalize data",col="red")
+
+# bu dönüşümler verinin dağılımını değiştirmemektedir.
+```
+
+# Doğrusal Regresyon
+
+Basit doğrusal regresyon, iki nicel değişken arasındaki doğrusal ilişkiyi değerlendirmeye izin veren istatistiksel bir yaklaşımdır. Daha doğrusu, ilişkinin nicelleştirilmesini ve öneminin değerlendirilmesini sağlar. Çoklu doğrusal regresyon, bu yaklaşımın bir yanıt değişkeni (nicel) ile birkaç açıklayıcı değişken (nicel veya nitel) arasındaki doğrusal ilişkileri değerlendirmeyi mümkün kılması anlamında, basit doğrusal regresyonun bir genellemesidir.
+
+Basit doğrusal regresyonda, değişkenlerden biri yanıt veya bağımlı değişken olarak kabul edilir ve y ekseninde temsil edilir. Diğer değişken ise açıklayıcı veya bağımsız değişken olarak da adlandırılır ve x ekseninde temsil edilir.
+
+Basit doğrusal regresyon, iki değişken arasında doğrusal bir ilişkinin varlığını değerlendirmeye ve bu bağlantıyı nicelleştirmeye izin verir. Doğrusallığın, iki değişkenin doğrusal olarak bağımlı olup olmadığını test etmesi ve ölçmesi anlamında doğrusal regresyonda güçlü bir varsayım olduğuna dikkat etmek gerekmektedir.
+
+Doğrusal regresyonu güçlü bir istatistiksel araç yapan şey, açıklayıcı/bağımsız değişken bir birim arttığında yanıtın/bağımlı değişkenin hangi nicelikle değiştiğini ölçmeye izin vermesidir. Bu kavram doğrusal regresyonda anahtardır ve aşağıdaki soruları yanıtlamaya yardımcı olur:
+
+-   Reklama harcanan miktar ile belirli bir dönemdeki satışlar arasında bir bağlantı var mı?
+
+-   Tütün vergilerindeki artış tüketimini azaltır mı?
+
+-   Bölgeye bağlı olarak bir konutun en olası fiyatı nedir?
+
+-   Bir kişinin bir uyarana tepki verme süresi cinsiyete bağlı mıdır?
+
+Basit doğrusal regresyon analizinde, bağımlı değişken y ile bağımsız değişken x arasındaki ilişki doğrusal bir denklem şeklinde verilir.
+
+$$
+y=\beta_0+\beta_1x+\varepsilon
+$$
+
+Burada, $\beta_0$ sayısına kesme noktası denir ve regresyon doğrusu ile y ekseninin (x=0) kesişme noktasını tanımlar. $\beta_1$ sayısına regresyon katsayısı denir. Regresyon doğrusu eğiminin bir ölçüsüdür. Böylece $\beta_1$, x değeri 1 birim arttığında y değerinin ne kadar değiştiğini gösterir. Model, x ve y arasında kesin bir ilişki verdiği için deterministik bir model olarak kabul edilir.
+
+Ancak birçok durumda, iki değişken x ve y arasındaki ilişki kesin değildir. Bunun nedeni, bağımlı değişken y'nin, tahmin değişkeni x tarafından tam olarak yakalanmayan diğer bilinmeyen ve/veya rastgele süreçlerden etkilenmesidir. Böyle bir durumda veri noktaları düz bir çizgi üzerinde sıralanmaz. Bununla birlikte, veriler hala temeldeki doğrusal bir ilişkiyi takip edebilir. Bu bilinmeyenleri dikkate almak için doğrusal model denklemine $\varepsilon$ ile gösterilen rastgele bir hata terimi eklenir ve olasılıklı bir model elde edilir. Burada hata terimi $\varepsilon_i$'nin bağımsız normal dağılımlı değerlerden oluştuğu varsayılır, $e_i$\~$N(0,\sigma^2)$.
+
+Doğrusal regresyon modeli hakkında aşağıdaki varsayımlar yapılır:
+
+-   Bağımlı değişken tesadüfi bir değişkendir ve normal dağılım göstermektedir.
+
+-   Tahmin hataları tesadüfidir ve normal dağılım gösterirler.
+
+-   Hatalar birbirinden bağımsızdır (otokorelasyon yoktur).
+
+-   Hata varyansı sabittir ve veriler arasında hiç değişmediği varsayılır (eşit varyanslılık-homoscedasticity).
+
+-   Eğer çoklu regresyon analizi yapılıyorsa, bağımsız değişkenlerin birbirleri ile bağlantısının olmaması gereklidir. Buna çoklu bağlantı (multicollinearity) olmaması varsayımı adı verilir.
+
+-   Bağımlı değişken ile bağımsız değişkenler arasında doğrusal bir ilişki olmalıdır.
+
+-   Gözlem sayısı parametre sayısından büyük olmalıdır.
+
+```{r}
+
+library(gapminder)
+library(dplyr)
+library(ggplot2)
+
+# gapminder veri setine bakalım
+
+glimpse(gapminder)
+summary(gapminder)
+
+# kişi başına milli gelir ile yaşam beklentisi değişkenlerini görselleştirelim.
+
+ggplot(gapminder, aes(gdpPercap, lifeExp)) +
+  geom_point()
+
+ggplot(gapminder, aes(gdpPercap, lifeExp)) +
+  geom_point() + 
+  geom_smooth(method = "lm",se=TRUE)
+
+# regresyon modeli kuralım
+
+model1 <- lm(lifeExp ~ gdpPercap, data = gapminder)
+model1
+
+```
+
+Yani burada söyleyebileceğimiz şey, GSYİH'daki her 1 artış için, yaşam beklentisinde 0.0007649 yıllık bir artış görmeyi bekleyebiliriz. Bu özellikle büyük değil - ama o zaman, GSYİH'de tek bir dolarlık artış da çok fazla değil! Modelimizi daha iyi anlayabilmek için model üzerinde summary() fonksiyonunu kullanabiliriz. Ayrıca artıkların normalliğini de bakmak fa fayda var.
+
+```{r}
+
+summary(model1)
+
+#artıkların normalliğini inceleyelim
+# 1. yol - ggplot ile
+ggplot(mapping=aes(sample = resid(model1))) +
+    stat_qq() + 
+    stat_qq_line(col="red",size=1.25) +
+    theme_minimal()
+
+# 2.yol - base R plot ile
+qqnorm(resid(model1))
+qqline(resid(model1))
+
+# 3. yol olsrr paketi ile (başka paketler de var tabii ki)
+library(olsrr)
+
+ols_plot_resid_qq(model1) 
+ols_test_normality(model1)
+ols_plot_resid_fit(model1)
+ols_plot_resid_hist(model1)
+```
+
+Artıklara öncelikle bakarsak, bir noktadan sonra sapmalar olduğunu görebiliriz. Bu durum bize artıkarın normal dağılmadığı mesajını veriyor. Normallik testlerinden de bu mesajı doğrulayabiliriz.
+
+**`ols_plot_resid_fit`** fonksiyonu doğrusal olmamayı, eşit olmayan hata varyanslarını ve aykırı değerleri tespit etmek için y eksenindeki artıkların ve x eksenindeki kestirim değerlerinin bir dağılım grafiğini üretmektedir. Artıkların aşağıdaki şekilde davranış göstermesi beklenir.
+
+-   Artıklar, ilişkinin doğrusal olduğunu gösteren 0 çizgisi etrafında rastgele dağılır.
+
+-   Artıklar, hata varyansının homojenliğini gösteren 0 çizgisi etrafında yaklaşık bir yatay bant oluşturur.
+
+-   Hiçbir artık, aykırı değer olmadığını gösteren artıkların rastgele modelinden gözle görülür şekilde uzakta değildir.
+
+**`summary`** fonksiyonu ile modelimizin verilere ne kadar iyi uyduğu hakkında biraz daha bilgi alıyoruz. Genel modelimiz ve her değişken için p-değerlerini görebiliriz. $R^2$ değeri, veri kümenizdeki varyansın ne kadarının modeliniz tarafından açıklanabileceğini - temel olarak, modelinizin verilere ne kadar iyi uyduğunu gösterir. Bu değer 0 ile 1 arasında değişir ve büyük olması beklenir. Genel olarak, modelinizde kaç değişken kullandığınızı telafi eden düzeltilmiş $R^2$'yi kullanırız - aksi halde başka bir değişken eklemek her zaman $R^2$'yi artırır.
+
+Ancak GSYİH'nın logaritması alındığında değişkenlerimiz arasında çok daha normal bir doğrusal ilişki görebiliriz.
+
+```{r}
+
+ggplot(gapminder, aes(log(gdpPercap), lifeExp)) +
+  geom_point() + 
+  geom_smooth(method = "lm",se=TRUE)
+
+model2 <- lm(lifeExp ~ log(gdpPercap), data = gapminder)
+summary(model2)
+```
+
+$R^2$ değerimizin arttığını görebiliyoruz. İlk modelde bu değer 0,34 iken ikinci modelde 0,652 olarak bulunmuştur Bu nedenle, verilerimizi log-dönüştürmek, modelimizin verilere daha iyi uymasına yardımcı oluyor gibi görünüyor. Veri setimizdeki continent (kıta) ve year (yıl) değişkenlerini de modele ekleyerek çoklu regresyon analizi sonuçlarına bakalım.
+
+```{r}
+
+model3 <- lm(lifeExp ~ log(gdpPercap) + continent + year, data = gapminder)
+summary(model3)
+
+```
+
+Bu sonuçlara göre $R^2$ değeri 0.79'a yükselmiştir. değişken sayısını artırmak model başarısını artırmış görünüyor. Ayrıca katsayıların hepsinin de anlamlı çıktığı göz ardı edilmemelidir.
+
+Afrika kıtası haricinde, veri kümemizdeki kıtaların her biri için bir satır var. Bunun sebebi Afrika kıtası referans kıta olarak burada belirlenmesinden kaynaklanmaktadır. Yani kıtalara göre verileri yorumlarken Afirika kıtasına göre değerlendirme yapılacaktır. Örneğin Avrupa'da olmak ortalama olarak, Afrika'da olmaktan 12.27 yıl daha fazla yaşam beklentisine sahip olmak anlamına gelmektedir.
+
+Model her bağımsız değişkenin birbirinden bağımsız olduğunu varsaymasıdır. Bununla birlikte, bunun GSYİH ve kıta için doğru olmadığından oldukça emin olabiliriz - genellikle Okyanusya'daki çoğu ülkenin, örneğin Afrika'daki çoğu ülkeden daha yüksek kişi başına GSYİH'ya sahip olduğunu varsayabiliriz. Bu nedenle, bu iki değişken arasında bir etkileşim terimi eklemeliyi düşünebiliriz. Bunu, model ifademizde bu terimler arasındaki + yerine \* ile değiştirerek yapabiliriz.
+
+```{r}
+
+model4 <- lm(lifeExp ~ log(gdpPercap) * continent + year, data = gapminder)
+summary(model4)
+```
+
+Sonuçlar $R^2$ değerinin 0.80'e yükseldiğini gösteriyor. Şimdi bu modeli kullanarak yeni bir gözlem ile kestirim yapalım.
+
+```{r}
+
+# yeni verilerler kestirim
+gap_pred <- data.frame(lifeExp=c(70,75,80),
+                       gdpPercap=c(9000,12000,15000),
+                       continent=c("Asia","Americas","Europe"),
+                       year=c(2012,2012,2012))
+
+predict(model4, newdata = gap_pred,interval = "confidence", level = 0.99)
+
+# model tahminlerine ulaşmak
+fitted <- data.frame(predict=model4$fitted.values)
+head(fitted,10)
+
+# original ve kestirim sonuçlarını görselleştirelim
+ggplot(gapminder, aes(gdpPercap)) + 
+  geom_point(aes(y = lifeExp)) + 
+  geom_point(aes(y = fitted$predict), color = "blue", alpha = 0.25)
+```
+
+Model sonuçları içerisinde bakılması gereken en önemli kısımlardan birisi de artıklardır. Artıklar kullanılarak modellerin başarılarıını ölçen metrikler bulunmaktadır. Artıkların ortalaması ya da [**RMSE**](https://en.wikipedia.org/wiki/Root-mean-square_deviation#:~:text=The%20root%2Dmean%2Dsquare%20deviation,estimator%20and%20the%20values%20observed.&text=RMSD%20is%20the%20square%20root%20of%20the%20average%20of%20squared%20errors.)(Root mean square error) bunlardan bazılarıdır. Ayrıca [**AIC**](https://en.wikipedia.org/wiki/Akaike_information_criterion), [**BIC**](https://en.wikipedia.org/wiki/Bayesian_information_criterion)gibi bilgi kriterleri de model başarımlarını ölçmede yardımcı metriklerdir.
+
+```{r}
+
+# Modellerin metriklerini bir araya getirelim
+
+ME <- function(model){
+  mean(residuals(model))
+  
+}
+
+RMSE <- function(model){
+  sqrt(sum(residuals(model)^2) / df.residual(model))
+}
+
+adj.R2 <- function(model){
+   summary(model)$adj.r.squared
+}
+
+metrics <-
+  data.frame(
+    model = c("model1", "model2", "model3", "model4"),
+    ME = c(ME(model1), ME(model2), ME(model3), ME(model4)),
+    AIC = c(AIC(model1), AIC(model2), AIC(model3), AIC(model4)),
+    adj.R2 = c(
+      adj.R2(model1),
+      adj.R2(model2),
+      adj.R2(model3),
+      adj.R2(model4)
+    ),
+    RMSE = c(RMSE(model1), RMSE(model2), RMSE(model3), RMSE(model4))
+  )
+
+metrics
+```
+
+Model sonuçlarının daha güzel ve temiz (tidy) bir formatta görünmesi için **`broom`** paketi kullanılabilir.
+
+```{r}
+
+library(broom)
+# Katsayılar düzeyinde sonuçlar
+tidy(model4)
+
+#model düzeyinde sonuçlar
+glance(model4)
+
+# gözlem düzeyinde sonuçlar
+augment(model4)
+```
